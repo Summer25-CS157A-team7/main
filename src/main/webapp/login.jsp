@@ -9,7 +9,7 @@
     <h2>Byte2Bite Login</h2>
     <form action="loginPin" method="post">
         Pin: <input type="pin" name="pin" /><br/><br/>
-        <input type=test value="Login" />
+        <input type= submit value="Login" />
     </form>
 </body>
 </html>
