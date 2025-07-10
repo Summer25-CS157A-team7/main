@@ -12,7 +12,7 @@
             Class.forName("com.mysql.cj.jdbc.Driver");
             try (Connection con = DriverManager.getConnection(
                      "jdbc:mysql://localhost:3306/byte2bite?autoReconnect=true&useSSL=false",
-                     "root", "U75G336w."
+                     "root", "Password"
                  );
                  PreparedStatement ps = con.prepareStatement(
                      "SELECT Name, Role FROM Login WHERE Pin = ?"
