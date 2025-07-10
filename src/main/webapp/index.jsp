@@ -2,12 +2,13 @@
 <%String name = (String) session.getAttribute("name");%>
 <%String role = (String) session.getAttribute("role");%>
 <!DOCTYPE html>
+
+
 <html>
-<head>
-    <meta charset="UTF-8">
-    <title>Admin Page</title>
-</head>
-<body>
-     <h2>Welcome, <%= name %>! You’ve successfully logged in31fs test test <%= role %> .</h2>
-</body>
+    <head>
+        <title>Index</title>
+    </head>
+    <body>
+        <h1>Welcome to Byte2bite Software</h1>
+    </body>
 </html>
