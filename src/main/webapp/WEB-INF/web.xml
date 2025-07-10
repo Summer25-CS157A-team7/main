@@ -5,3 +5,6 @@
                              https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
          version="6.0">
 
+    <display-name>Main Webapp</display-name>
+
+</web-app>
