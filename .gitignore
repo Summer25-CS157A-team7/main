@@ -1,0 +1,15 @@
+# Maven build output
+/target/
+
+# Node (if you added Tailwind/npm files)
+node_modules/
+npm-debug.log*
+package-lock.json
+
+# IDE files
+/.idea/
+/*.iml
+*.class
+
+# MacOS
+.DS_Store

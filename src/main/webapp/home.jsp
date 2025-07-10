@@ -8,6 +8,6 @@
     <title>Admin Page</title>
 </head>
 <body>
-     <h2>Welcome, <%= name %>! You’ve successfully logged in31fs test test <%= role %> .</h2>
+     <h2>Welcome, <%= name %>! You’ve successfully logged in as <%= role %> .</h2>
 </body>
 </html>
