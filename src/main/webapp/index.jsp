@@ -9,32 +9,31 @@
 </head>
 <body>
   <div class="login-container">
-    <h2>Enter Your PIN</h2>
+    <h2>Enter Your Login</h2>
 
-    <% String error = (String) request.getAttribute("error"); %>
-    <% if (error != null) { %>
-      <div class="error"><%= error %></div>
-    <% } %>
+    <form method="post" action="${pageContext.request.contextPath}/login">
+      <div class="form-group">
+        <label for="staff_id">Staff ID</label>
+        <input
+          type="text"
+          id="staff_id"
+          name="staff_id"
+          required
+          autofocus
+          class="form-control"/>
+      </div>
 
-    <form method="post" action="login">
       <div class="form-group">
         <label for="pin">PIN</label>
-        <input type="password"
-               id="pin"
-               name="pin"
-               required
-               autofocus
-               class="form-control"/>
+        <input
+          type="password"
+          id="pin"
+          name="pin"
+          required
+          class="form-control"/>
       </div>
-      <div class="form-group">
-        <label for="last_name">Last Name</label>
-        <input type="text"
-               id="last_name"
-               name="last_name"
-               required
-               class="form-control"/>
-      </div>
-      <button type="submit" class="btn-submit">Submit</button>
+
+      <button type="submit" class="btn-Login">Login</button>
     </form>
   </div>
 </body>
