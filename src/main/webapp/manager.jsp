@@ -12,6 +12,19 @@
     <title>Manager Page</title>
 </head>
 <body>
-    <h2>Welcome, <%= firstName %> <%= lastName %>! You’ve successfully logged in as <%= role %>.</h2>
+    <h2>Manager: <%= firstName %> <%= lastName %></h2>
+
+    <form action="register_employee.jsp" method="get">
+    <button type="submit" class="btn">
+        Register Employees
+    </button>
+    </form>
+
+    <form action="manage_employee.jsp" method="get">
+    <button type="submit" class="btn">
+        Manage Employees
+    </button>
+    </form>
+
 </body>
 </html>
