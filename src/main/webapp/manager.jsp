@@ -26,5 +26,12 @@
     </button>
     </form>
 
+    <form action="manage_table.jsp" method="get">
+    <button type="submit" class="btn">
+        Manage Table
+    </button>
+    </form>
+
+
 </body>
 </html>
