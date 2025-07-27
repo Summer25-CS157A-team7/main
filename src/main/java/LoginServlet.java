@@ -26,41 +26,36 @@ public class LoginServlet extends HttpServlet {
     private static final String DB_PASSWORD = ""; //add your password
 
     @Override
-    protected void doPost(HttpServletRequest request,HttpServletResponse response)
-            throws ServletException, IOException 
-            {
-
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        
         String staffId = request.getParameter("staff_id");
         String pin     = request.getParameter("pin");
 
-        if (staffId == null || staffId.isEmpty() ||
-            pin     == null || pin.isEmpty()) {
+    
+        if (staffId == null || staffId.isEmpty() || pin == null || pin.isEmpty()) {
             request.setAttribute("error", "Staff ID and PIN are required.");
             request.getRequestDispatcher("index.jsp").forward(request, response);
             return;
         }
 
-        String sql = ""
-            + "SELECT s.first_name, s.last_name, r.role_name "
-            + "FROM Staff s"
-            + "JOIN staff_role r ON s.staff_id = r.staff_id "
-            + "WHERE s.staff_id = ? "
-            + "AND s.pin = ?";
+            String sql = "SELECT s.first_name, s.last_name, r.role_name " +
+             "FROM Staff s " +
+             "JOIN staff_role r ON s.staff_id = r.staff_id " +
+             "WHERE s.staff_id = ? AND s.pin = ?";
+
 
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
 
-            try (Connection con = DriverManager.getConnection(
-                     JDBC_URL, DB_USER, DB_PASSWORD);
+            try (Connection con = DriverManager.getConnection(JDBC_URL, DB_USER, DB_PASSWORD);
                  PreparedStatement ps = con.prepareStatement(sql)) {
 
                 ps.setInt(1, Integer.parseInt(staffId));
                 ps.setString(2, pin);
 
-                try (ResultSet rs = ps.executeQuery()) 
-                {
-                    if (rs.next()) 
-                    {
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
                         HttpSession session = request.getSession();
                         session.setAttribute("FirstName", rs.getString("first_name"));
                         session.setAttribute("LastName",  rs.getString("last_name"));
@@ -68,35 +63,27 @@ public class LoginServlet extends HttpServlet {
 
                         String role = rs.getString("role_name");
 
-                        if ("Admin".equalsIgnoreCase(role)) 
-                        {
+                        session.setAttribute("loginSuccess", "Welcome " + rs.getString("first_name") + " " + rs.getString("last_name"));
+
+                        if ("Admin".equalsIgnoreCase(role)) {
                             response.sendRedirect(request.getContextPath() + "/admin.jsp");
-                        } else if ("Manager".equalsIgnoreCase(role)) 
-                        {
+                        } else if ("Manager".equalsIgnoreCase(role)) {
                             response.sendRedirect(request.getContextPath() + "/manager.jsp");
-                        } else if ("WaitStaff".equalsIgnoreCase(role)) 
-                        {
+                        } else if ("WaitStaff".equalsIgnoreCase(role)) {
                             response.sendRedirect(request.getContextPath() + "/waitStaff.jsp");
-                        } 
-                        else if ("Wait_Kitchen".equalsIgnoreCase(role)) 
-                        {
+                        } else if ("Wait_Kitchen".equalsIgnoreCase(role)) {
                             response.sendRedirect(request.getContextPath() + "/waitKitchen.jsp");
-                        } else 
-                        {
+                        } else {
                             request.setAttribute("error", "Unknown role.");
                             request.getRequestDispatcher("index.jsp").forward(request, response);
                         }
-                    } 
-                    else 
-                    {
+                    } else {
                         request.setAttribute("error", "Invalid Staff ID or PIN.");
-                        request.getRequestDispatcher("index.jsp")
-                               .forward(request, response);
+                        request.getRequestDispatcher("index.jsp").forward(request, response);
                     }
                 }
             }
-        } catch (Exception e) 
-        {
+        } catch (Exception e) {
             request.setAttribute("error", "Error: " + e.getMessage());
             request.getRequestDispatcher("index.jsp").forward(request, response);
         }

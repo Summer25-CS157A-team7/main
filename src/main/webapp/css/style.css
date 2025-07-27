@@ -3,26 +3,26 @@
   background: #fff;
   padding: 2rem;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 360px;
+  max-width: 660px;
   margin: auto;
 }
-
 
 .login-container h2 {
   text-align: center;
   margin-top: 0;
 }
 
-
 .form-group {
   margin-bottom: 1rem;
 }
+
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
 }
+
 .form-group input {
   width: 100%;
   padding: 0.5rem;
@@ -31,22 +31,26 @@
   border-radius: 4px;
 }
 
+
 .btn-Login {
-  width: 105%;
-  padding: 0.75rem;
-  font-size: 1rem;
+  width: 100%;
+  padding: 1rem; 
+  font-size: 1.2rem; 
   border: none;
   border-radius: 4px;
   background: #007bff;
   color: #fff;
   cursor: pointer;
+  text-align: center;
+  transition: background 0.3s ease;
+  box-sizing: border-box; 
 }
-.btn-submit:hover {
+
+.btn-Login:hover {
   background: #0056b3;
 }
 
-
-.error {
+.error-message {
   margin-bottom: 1rem;
   padding: 0.75rem;
   background: #ffe6e6;

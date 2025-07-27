@@ -21,7 +21,7 @@ public class OrderServlet extends HttpServlet {
     private static final String JDBC_URL =
         "jdbc:mysql://localhost:3306/byte2bite?autoReconnect=true&useSSL=false";
     private static final String DB_USER = "root";
-    private static final String DB_PASSWORD = "!"; // replace with your actual password
+    private static final String DB_PASSWORD = "Password12!"; // replace with your actual password
 
     @Override
     protected void doPost(HttpServletRequest request,
