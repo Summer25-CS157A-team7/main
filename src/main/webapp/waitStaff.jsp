@@ -1,62 +1,55 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" %>
-<%@ page import="java.util.*" %>
-<!DOCTYPE html>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="java.sql.*" %>
 <html>
 <head>
-    <title>Order - Add to Cart</title>
+    <title>Byte2Bite – Waitstaff Order Entry</title>
 </head>
 <body>
-<h2>Create a New Order</h2>
+    <h1>Enter a New Order</h1>
 
-<% String message = (String) session.getAttribute("message");
-   if (message != null) {
-       out.println("<p style='color:green;'>" + message + "</p>");
-       session.removeAttribute("message");
-   }
+    <form method="post" action="submitOrder.jsp">
+        <label>Table Number:</label>
+        <input type="number" name="table_id" required /><br/><br/>
 
-   String error = (String) request.getAttribute("error");
-   if (error != null) {
-       out.println("<p style='color:red;'>" + error + "</p>");
-   }
-%>
+        <table border="1">
+            <tr>
+                <th>Select</th>
+                <th>Meal ID</th>
+                <th>Meal Name</th>
+            </tr>
 
-<form method="post" action="add-to-cart">
-    Customer ID: <input type="text" name="customer_id" required><br><br>
-    Table ID: <input type="text" name="table_id" required><br><br>
-    Status:
-    <select name="status">
-        <option value="pending">Pending</option>
-        <option value="in_progress">In Progress</option>
-        <option value="completed">Completed</option>
-    </select><br><br>
-
-    Meal ID: <input type="text" name="meal_id" required>
-    Quantity: <input type="number" name="quantity" min="1" required>
-    <input type="submit" value="Add to Cart">
-</form>
-
-<hr>
-<h3>🛒 Current Cart:</h3>
-<ul>
 <%
-    List<Map<String, String>> cart = (List<Map<String, String>>) session.getAttribute("cart");
-    if (cart != null && !cart.isEmpty()) {
-        for (Map<String, String> item : cart) {
-            out.println("<li>Meal ID: " + item.get("meal_id") + ", Quantity: " + item.get("quantity") + "</li>");
+    try {
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        Connection con = DriverManager.getConnection(
+            "jdbc:mysql://localhost:3306/byte2bite?autoReconnect=true&useSSL=false",
+            "root", "Anderson!!22"
+        );
+
+        Statement stmt = con.createStatement();
+        ResultSet rs = stmt.executeQuery("SELECT meal_id, name FROM meal");
+
+        while (rs.next()) {
+            int mealId = rs.getInt("meal_id");
+            String mealName = rs.getString("name");
+
+            out.println("<tr>");
+            out.println("<td><input type='checkbox' name='meal_ids' value='" + mealId + "' /></td>");
+            out.println("<td>" + mealId + "</td>");
+            out.println("<td>" + mealName + "</td>");
+            out.println("</tr>");
         }
-    } else {
-        out.println("<li>Your cart is empty.</li>");
+
+        rs.close();
+        stmt.close();
+        con.close();
+    } catch (Exception e) {
+        out.println("<tr><td colspan='3' style='color:red;'>Error loading meals: " + e.getMessage() + "</td></tr>");
     }
 %>
-</ul>
+        </table><br/>
 
-<form method="post" action="add-to-cart">
-    <input type="hidden" name="submit_order" value="true">
-    <input type="hidden" name="customer_id" value="<%= request.getParameter("customer_id") %>">
-    <input type="hidden" name="table_id" value="<%= request.getParameter("table_id") %>">
-    <input type="hidden" name="status" value="<%= request.getParameter("status") %>">
-    <input type="submit" value="Submit Full Order">
-</form>
-
+        <input type="submit" value="Submit Order" />
+    </form>
 </body>
 </html>
