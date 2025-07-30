@@ -1,7 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.byte2bite</groupId>
@@ -10,14 +9,13 @@
   <packaging>war</packaging>
 
   <properties>
-    <!-- Tomcat 11 requires Java 17+ -->
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
   <dependencies>
-    <!-- Jakarta Servlet API (Tomcat 11) -->
+    <!-- Jakarta Servlet API -->
     <dependency>
       <groupId>jakarta.servlet</groupId>
       <artifactId>jakarta.servlet-api</artifactId>
@@ -25,7 +23,7 @@
       <scope>provided</scope>
     </dependency>
 
-    <!-- Jakarta JSP API -->
+    <!-- JSP API -->
     <dependency>
       <groupId>jakarta.servlet.jsp</groupId>
       <artifactId>jakarta.servlet.jsp-api</artifactId>
@@ -33,7 +31,7 @@
       <scope>provided</scope>
     </dependency>
 
-    <!-- JSTL (Jakarta version) -->
+    <!-- JSTL -->
     <dependency>
       <groupId>jakarta.servlet.jsp.jstl</groupId>
       <artifactId>jakarta.servlet.jsp.jstl-api</artifactId>
@@ -45,18 +43,19 @@
       <version>3.0.1</version>
     </dependency>
 
-    <!-- MySQL JDBC Driver -->
+    <!-- MySQL JDBC -->
     <dependency>
       <groupId>com.mysql</groupId>
       <artifactId>mysql-connector-j</artifactId>
-      <version>8.0.33</version>
+      <version>9.3.0</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 
   <build>
     <finalName>byte2bite-web</finalName>
-
     <plugins>
+      <!-- Compiler -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -66,6 +65,7 @@
         </configuration>
       </plugin>
 
+      <!-- WAR packaging -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
@@ -75,27 +75,39 @@
         </configuration>
       </plugin>
 
+      <!-- Cargo plugin for Tomcat -->
       <plugin>
         <groupId>org.codehaus.cargo</groupId>
         <artifactId>cargo-maven3-plugin</artifactId>
         <version>1.10.14</version>
         <configuration>
+          <!-- Which Tomcat installation to use -->
           <container>
             <containerId>tomcat11x</containerId>
-            <home>"C:\157A Server\Tomcat 11\apache-tomcat-11.0.7"</home>
+            <home>/Users/tigati/Tomcat/apache-tomcat-11.0.8</home>
           </container>
+
+          <!-- Cargo's local configuration -->
           <configuration>
             <type>standalone</type>
             <home>${project.build.directory}/cargo-config</home>
             <properties>
+              <!-- Enable hot-reload -->
               <cargo.servlet.port>8080</cargo.servlet.port>
+              <cargo.tomcat.autoDeploy>true</cargo.tomcat.autoDeploy>
+              <cargo.tomcat.unpackWARs>true</cargo.tomcat.unpackWARs>
             </properties>
           </configuration>
+
+          <!-- Deploy WAR in exploded mode -->
           <deployables>
             <deployable>
               <groupId>${project.groupId}</groupId>
               <artifactId>${project.artifactId}</artifactId>
               <type>war</type>
+              <properties>
+                <context>byte2bite-web</context>
+              </properties>
             </deployable>
           </deployables>
         </configuration>

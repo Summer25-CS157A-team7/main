@@ -1,16 +1,19 @@
-
 .login-container {
   background: #fff;
   padding: 2rem;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 660px;
+  max-width: 400px;   
   margin: auto;
 }
 
 .login-container h2 {
   text-align: center;
+    font-family: 'Playfair Display', serif;
+  font-weight: 590;
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
   margin-top: 0;
 }
 
@@ -21,21 +24,23 @@
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
+  font-weight: bold;
 }
+
 
 .form-group input {
-  width: 100%;
-  padding: 0.5rem;
+  width: 100%;             
+  padding: 1rem;
   font-size: 1rem;
-  border: 1px solid #ccc;
+  border: 0.4px solid #ccc;
   border-radius: 4px;
+  box-sizing: border-box;  
 }
 
-
 .btn-Login {
-  width: 100%;
-  padding: 1rem; 
-  font-size: 1.2rem; 
+  width: 100%;             
+  padding: 1rem;
+  font-size: 1.2rem;
   border: none;
   border-radius: 4px;
   background: #007bff;
@@ -43,7 +48,7 @@
   cursor: pointer;
   text-align: center;
   transition: background 0.3s ease;
-  box-sizing: border-box; 
+  box-sizing: border-box;
 }
 
 .btn-Login:hover {
@@ -58,3 +63,44 @@
   border: 1px solid #cc0000;
   border-radius: 4px;
 }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;  
+  background: #f4f4f4;
+  font-family: Arial, sans-serif;
+}
+
+
+header {
+  position: fixed;      
+  top: 20px;
+  right: 35px;
+  display: flex;
+  align-items: center;
+  gap: 8px;  
+}
+
+header img {
+  max-width: 55px;
+  height: auto;
+}
+
+.brand-name {
+  font-size: 2.4rem;
+  font-weight: bold;
+  color: #007bff;
+  font-family: 'Comic Neue', 'Comic Sans MS', cursive, sans-serif;
+  margin: 0;
+}
+
+
+
+
