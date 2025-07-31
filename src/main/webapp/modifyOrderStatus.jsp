@@ -19,7 +19,7 @@
 <%
     String db = "byte2bite";
     String user = "root";
-    String password = "Anderson!!22";
+    String password = "Password12!";
 
     try {
         Class.forName("com.mysql.cj.jdbc.Driver");

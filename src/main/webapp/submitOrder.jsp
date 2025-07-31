@@ -12,7 +12,7 @@
         int tableId = Integer.parseInt(tableIdStr);
 
         Class.forName("com.mysql.cj.jdbc.Driver");
-        Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/byte2bite?autoReconnect=true&useSSL=false", "root", "Anderson!!22");
+        Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/byte2bite?autoReconnect=true&useSSL=false", "root", "Password12!");
 
         PreparedStatement ps = con.prepareStatement(
             "INSERT INTO `order` (table_id, meal_id, status) VALUES (?, ?, 'Pending')"

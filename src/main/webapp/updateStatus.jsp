@@ -2,7 +2,7 @@
 <%
     String db = "byte2bite";
     String user = "root";
-    String password = "Anderson!!22";
+    String password = "Password12!";
 
     String newStatus = request.getParameter("new_status");
     String orderId = request.getParameter("order_id");

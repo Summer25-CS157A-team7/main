@@ -10,7 +10,7 @@
 
     String JDBC_URL    = "jdbc:mysql://localhost:3306/byte2bite?autoReconnect=true&useSSL=false";
     String DB_USER     = "root";
-    String DB_PASSWORD = "Password12!";
+    String DB_PASSWORD = "ADD YOUR PASSWORD";
 %>
 
 <!DOCTYPE html>

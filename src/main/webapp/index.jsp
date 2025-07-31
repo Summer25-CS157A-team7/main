@@ -4,18 +4,14 @@
 <head>
   <meta charset="UTF-8"/>
   <title>Login – Enter PIN</title>
-  <link rel="stylesheet" href="/byte2bite-web/css/style.css?v=<%= System.currentTimeMillis() %>" />
+  <link rel="stylesheet" href="/byte2bite-web/css/login.css?v=<%= System.currentTimeMillis() %>" />
 
 </head>
 <body>
 
-  <header>
-    <img src="${pageContext.request.contextPath}/images/logo.png" alt="Logo"/>
-    <div class="brand-name">Byte2Bite</div>
-  </header>
   
   <div class="login-container">
-    <h2>Enter Your Login</h2>
+    <h2>Login</h2>
 
     <form method="post" action="${pageContext.request.contextPath}/login">
       <div class="form-group">

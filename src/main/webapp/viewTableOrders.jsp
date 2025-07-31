@@ -21,7 +21,7 @@
         Class.forName("com.mysql.cj.jdbc.Driver");
         Connection con = DriverManager.getConnection(
             "jdbc:mysql://localhost:3306/byte2bite?autoReconnect=true&useSSL=false",
-            "root", "Anderson!!22"
+            "root", "Password12!"
         );
 
         PreparedStatement ps = con.prepareStatement(
