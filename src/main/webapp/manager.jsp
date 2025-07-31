@@ -26,7 +26,7 @@
     </button>
     </form>
 
-    <form action="manage_table.jsp" method="get">
+    <form action="viewTables.jsp" method="get">
     <button type="submit" class="btn">
         Manage Table
     </button>

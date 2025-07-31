@@ -2,15 +2,15 @@
          contentType="text/html; charset=UTF-8"
          import="java.sql.*" %>
 <%
-    // --- Session info ---
+
     String firstName = (String) session.getAttribute("FirstName");
     String lastName  = (String) session.getAttribute("LastName");
     String role      = (String) session.getAttribute("role");
 
-    // --- JDBC settings ---
+
     String JDBC_URL    = "jdbc:mysql://localhost:3306/byte2bite?autoReconnect=true&useSSL=false";
     String DB_USER     = "root";
-    String DB_PASSWORD = "U75G336w.";
+    String DB_PASSWORD = "Password12!";
 %>
 
 <!DOCTYPE html>
@@ -18,6 +18,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Manager Page</title>
+     <link rel="stylesheet" href="/byte2bite-web/css/userInfo.css?v=<%= System.currentTimeMillis() %>" />
     <style>
       table { border-collapse: collapse; width: 80%; margin-top: 20px; }
       th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
@@ -25,9 +26,9 @@
     </style>
 </head>
 <body>
-    <h2>Welcome, <%= firstName %> <%= lastName %>! You’ve successfully logged in as <%= role %>.</h2>
-
-    <h3>All Employees</h3>
+    <div class="user-info"> <%= role %> : <%= firstName %> <%= lastName %></div>
+    
+    <h3>Employees List</h3>
     <%
         Connection conn = null;
         PreparedStatement ps = null;

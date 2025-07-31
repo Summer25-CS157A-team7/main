@@ -1,26 +1,33 @@
 <%@ page import="java.sql.*" %>
 <%
-    String tableIdStr = request.getParameter("table_id");
-    String newStatus = request.getParameter("new_status");
+    String[] tableIds    = request.getParameterValues("table_id");
+    String[] newStaffIds = request.getParameterValues("new_staff_id");
+    String[] newStatuses = request.getParameterValues("new_status");
+
+
+    int updateAmount = Math.min(tableIds.length, Math.min(newStaffIds.length, newStatuses.length));
 
     try {
-        int tableId = Integer.parseInt(tableIdStr);
-
         Class.forName("com.mysql.cj.jdbc.Driver");
-        Connection con = DriverManager.getConnection(
-            "jdbc:mysql://localhost:3306/byte2bite?autoReconnect=true&useSSL=false",
-            "root", "Anderson!!22"
-        );
+        try (Connection con = DriverManager.getConnection(
+                "jdbc:mysql://localhost:3306/byte2bite?autoReconnect=true&useSSL=false",
+                "root", "Password12!")) {
 
-        PreparedStatement ps = con.prepareStatement(
-            "UPDATE tablechart SET status = ? WHERE table_id = ?"
-        );
-        ps.setString(1, newStatus);
-        ps.setInt(2, tableId);
+            String sql = "UPDATE tablechart SET status = ?, table_staff_id = ? WHERE table_id = ?";
+            try (PreparedStatement ps = con.prepareStatement(sql)) {
+                for (int i = 0; i < updateAmount; i++) {
+                    int tableId = Integer.parseInt(tableIds[i]);
+                    int staffId = Integer.parseInt(newStaffIds[i]);
+                    String status = newStatuses[i];
 
-        ps.executeUpdate();
-        ps.close();
-        con.close();
+                    ps.setString(1, status);
+                    ps.setInt(2, staffId);
+                    ps.setInt(3, tableId);
+                    ps.addBatch();
+                }
+                ps.executeBatch();
+            }
+        }
 
         response.sendRedirect("viewTables.jsp");
     } catch (Exception e) {
