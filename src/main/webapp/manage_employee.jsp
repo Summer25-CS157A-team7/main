@@ -18,7 +18,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Manager Page</title>
-     <link rel="stylesheet" href="/byte2bite-web/css/userInfo.css?v=<%= System.currentTimeMillis() %>" />
+     <link rel="stylesheet" href="/byte2bite-web/css/manage_employee.css?v=<%= System.currentTimeMillis() %>" />
     <style>
       table { border-collapse: collapse; width: 80%; margin-top: 20px; }
       th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
