@@ -1,69 +1,98 @@
 <%@ page import="java.sql.*" %>
+<%@ page import="java.util.*" %>
+<!DOCTYPE html>
 <html>
 <head>
     <title>Byte2Bite – Manage Orders</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
-<body>
-    <h1>Manage Order Status</h1>
-    <table border="1">
-        <tr>
-            <th>Order ID</th>
-            <th>Customer ID</th>
-            <th>Name</th>
-            <th>Table#</th>
-            <th>Meal ID</th>
-            <th>Current Status</th>
-            <th>Update Status</th>
-        </tr>
+<body class="container mt-5">
+    <h2>Manage Orders</h2>
 
+    <!-- Filter Form -->
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-auto">
+            <input type="number" name="table_id" class="form-control" placeholder="Filter by Table #" value="<%= request.getParameter("table_id") != null ? request.getParameter("table_id") : "" %>">
+        </div>
+        <div class="col-auto">
+            <select name="status_filter" class="form-select">
+                <option value="">All Status</option>
+                <option value="Pending" <%= "Pending".equals(request.getParameter("status_filter")) ? "selected" : "" %>>Pending</option>
+                <option value="Preparing" <%= "Preparing".equals(request.getParameter("status_filter")) ? "selected" : "" %>>Being Prepared</option>
+                <option value="Ready" <%= "Ready".equals(request.getParameter("status_filter")) ? "selected" : "" %>>Order Ready</option>
+                <option value="Completed" <%= "Completed".equals(request.getParameter("status_filter")) ? "selected" : "" %>>Completed</option>
+            </select>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">Apply Filter</button>
+        </div>
+    </form>
+
+    <div class="row">
 <%
     String db = "byte2bite";
     String user = "root";
-    String password = "Password12!";
+    String password = "Anderson!!22";
+    String tableFilter = request.getParameter("table_id");
+    String statusFilter = request.getParameter("status_filter");
 
     try {
         Class.forName("com.mysql.cj.jdbc.Driver");
         Connection con = DriverManager.getConnection(
-            "jdbc:mysql://localhost:3306/byte2bite?autoReconnect=true&useSSL=false",
+            "jdbc:mysql://localhost:3306/" + db + "?autoReconnect=true&useSSL=false",
             user, password
         );
 
-        out.println("<p>" + db + " database successfully accessed.</p>");
+        String query = "SELECT o.order_id, c.customer_id, c.name, o.table_id, o.meal_id, o.status " +
+                       "FROM customer c JOIN `order` o USING (customer_id) WHERE 1=1";
+
+        if (tableFilter != null && !tableFilter.trim().isEmpty()) {
+            query += " AND o.table_id = " + tableFilter;
+        }
+        if (statusFilter != null && !statusFilter.trim().isEmpty()) {
+            query += " AND o.status = '" + statusFilter + "'";
+        }
 
         Statement stmt = con.createStatement();
-        ResultSet rs = stmt.executeQuery(
-            "SELECT o.order_id, c.customer_id, c.name, o.table_id, o.meal_id, o.status " +
-            "FROM customer c " +
-            "JOIN `order` o USING (customer_id)"
-        );
+        ResultSet rs = stmt.executeQuery(query);
 
         while (rs.next()) {
             int orderId = rs.getInt("order_id");
             String status = rs.getString("status");
+            String statusLabel = "Being Prepared";
+            String statusClass = "secondary";
+            boolean completeEnabled = false;
 
-            out.println("<tr>" +
-                "<td>" + orderId + "</td>" +
-                "<td>" + rs.getInt("customer_id") + "</td>" +
-                "<td>" + rs.getString("name") + "</td>" +
-                "<td>" + rs.getInt("table_id") + "</td>" +
-                "<td>" + rs.getInt("meal_id") + "</td>" +
-                "<td>" + status + "</td>" +
-                "<td>" +
-                    "<form method='post' action='updateStatus.jsp'>" +
-                        "<input type='hidden' name='order_id' value='" + orderId + "' />" +
-                        "<select name='new_status'>" +
-                            "<option" + (status.equalsIgnoreCase("Pending") ? " selected" : "") + ">Pending</option>" +
-                            "<option" + (status.equalsIgnoreCase("Preparing") ? " selected" : "") + ">Preparing</option>" +
-                            "<option" + (status.equalsIgnoreCase("Ready") ? " selected" : "") + ">Ready</option>" +
-                            "<option" + (status.equalsIgnoreCase("Serving") ? " selected" : "") + ">Serving</option>" +
-                            "<option" + (status.equalsIgnoreCase("Completed") ? " selected" : "") + ">Completed</option>" +
-                        "</select>" +
-                        "<input type='submit' value='Update' />" +
-                    "</form>" +
-                "</td>" +
-            "</tr>");
+            if ("Pending".equalsIgnoreCase(status) || "Preparing".equalsIgnoreCase(status)) {
+                statusLabel = "Being Prepared";
+                statusClass = "secondary";
+            } else if ("Ready".equalsIgnoreCase(status)) {
+                statusLabel = "Order Ready";
+                statusClass = "info";
+                completeEnabled = true;
+            } else if ("Completed".equalsIgnoreCase(status)) {
+                statusLabel = "Completed";
+                statusClass = "success";
+            }
+%>
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <strong>Order #<%= orderId %></strong>  Table <%= rs.getInt("table_id") %>  <%= rs.getString("name") %>
+                </div>
+                <div class="card-body">
+                    <p>Status: <button class="btn btn-sm btn-<%= statusClass %>" disabled><%= statusLabel %></button></p>
+                    <form method="post" action="updateStatus.jsp">
+                        <input type="hidden" name="order_id" value="<%= orderId %>" />
+                        <input type="hidden" name="new_status" value="Completed" />
+                        <button type="submit" class="btn btn-sm btn-success" <%= completeEnabled ? "" : "disabled" %>>Mark as Completed</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+<%
         }
-
         rs.close();
         stmt.close();
         con.close();
@@ -73,6 +102,6 @@
         out.println("<p style='color:red;'>ClassNotFoundException caught: " + e.getMessage() + "</p>");
     }
 %>
-    </table>
+    </div>
 </body>
 </html>
