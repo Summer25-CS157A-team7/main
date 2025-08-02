@@ -3,8 +3,8 @@
     String firstName = (String) session.getAttribute("FirstName");
     String lastName = (String) session.getAttribute("LastName");
     String role = (String) session.getAttribute("role");
+    int staffId = (int) session.getAttribute("staffId"); 
 %>
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -13,26 +13,20 @@
     <link rel="stylesheet" href="/byte2bite-web/css/manager.css?v=<%= System.currentTimeMillis() %>" />
 </head>
 <body>
-    <div class="user-info"> <%= role %> : <%= firstName %> <%= lastName %></div>
+    <div class="user-info">
+        <%= role %> : <%= firstName %> <%= lastName %> Staff ID: <%= staffId %>
+    </div>
 
     <form action="register_employee.jsp" method="get">
-    <button type="submit" class="btn">
-        Register Employees
-    </button>
+        <button type="submit" class="btn">Register Employees</button>
     </form>
 
     <form action="manage_employee.jsp" method="get">
-    <button type="submit" class="btn">
-        Manage Employees
-    </button>
+        <button type="submit" class="btn">Manage Employees</button>
     </form>
 
     <form action="viewTables.jsp" method="get">
-    <button type="submit" class="btn">
-        Manage Table
-    </button>
+        <button type="submit" class="btn">Manage Table</button>
     </form>
-
-
 </body>
 </html>

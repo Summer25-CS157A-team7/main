@@ -82,7 +82,6 @@
         out.println("    <td>" + tableId + "</td>");
         out.println("    <td>" + cap + "</td>");
 
-        // staff + status form
         out.println("    <td>");
         out.println("      <form method='post' action='updateTable.jsp' style='display:inline;'>");
         out.println("        <input type='hidden' name='table_id' value='" + tableId + "' />");
