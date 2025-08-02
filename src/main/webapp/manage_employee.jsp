@@ -2,30 +2,28 @@
          contentType="text/html; charset=UTF-8"
          import="java.sql.*" %>
 <%
-    // --- Session info ---
+
     String firstName = (String) session.getAttribute("FirstName");
     String lastName  = (String) session.getAttribute("LastName");
     String role      = (String) session.getAttribute("role");
 
-    // --- JDBC settings ---
+
     String JDBC_URL    = "jdbc:mysql://localhost:3306/byte2bite?autoReconnect=true&useSSL=false";
     String DB_USER     = "root";
-    String DB_PASSWORD = "ADD YOUR PASSWORD";
+    String DB_PASSWORD = "ADD YOUR PASSWORD HERE";
 
-    // --- Update role ---
+
     String newRole = request.getParameter("new_role");
     String staffIdToUpdate = request.getParameter("staff_id");
 
     if (newRole != null && staffIdToUpdate != null) {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            try (Connection conn2 = DriverManager.getConnection(JDBC_URL, DB_USER, DB_PASSWORD);
-                 PreparedStatement ps2 = conn2.prepareStatement("UPDATE staff_role SET role_name=? WHERE staff_id=?")) {
-                
+            try (Connection conn = DriverManager.getConnection(JDBC_URL, DB_USER, DB_PASSWORD);
+                 PreparedStatement ps2 = conn.prepareStatement("UPDATE staff_role SET role_name=? WHERE staff_id=?")) {
                 ps2.setString(1, newRole);
                 ps2.setInt(2, Integer.parseInt(staffIdToUpdate));
                 ps2.executeUpdate();
-                
                 out.println("<p style='color:green;'>Role updated!</p>");
             }
         } catch (Exception e) {
@@ -33,6 +31,7 @@
         }
     }
 %>
+
 
 <!DOCTYPE html>
 <html>
@@ -48,30 +47,20 @@
 <body>
     <h2>Welcome, <%= firstName %> <%= lastName %>! You’ve successfully logged in as <%= role %>.</h2>
 
-    <h3>All Employees</h3>
+    <h3>Active Employees</h3>
     <%
-        Connection conn = null;
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            conn = DriverManager.getConnection(JDBC_URL, DB_USER, DB_PASSWORD);
 
-            String sql = ""
-                + "SELECT s.staff_id, s.first_name, s.last_name, r.role_name "
-                + "FROM Staff s "
-                + "  JOIN staff_role r ON s.staff_id = r.staff_id "
-                + "ORDER BY s.staff_id";
-            ps = conn.prepareStatement(sql);
-            rs = ps.executeQuery();
+        String sql = "SELECT s.staff_id, s.first_name, s.last_name, r.role_name FROM Staff s JOIN staff_role r ON s.staff_id = r.staff_id WHERE s.staff_id NOT IN ( SELECT staff_id  FROM staff_role WHERE role_name = 'Admin' OR role_name = 'Manager' OR role_name = 'Terminated') ORDER BY s.staff_id";
+        try (Connection conn = DriverManager.getConnection(JDBC_URL, DB_USER, DB_PASSWORD);
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
     %>
     <table>
         <tr>
             <th>Staff ID</th>
             <th>First Name</th>
             <th>Last Name</th>
-            <th>Role</th>
-            <th>Change Role</th>
+            <th> Role</th>
         </tr>
         <%
             while (rs.next()) {
@@ -84,17 +73,14 @@
             <td><%= staffId %></td>
             <td><%= fName %></td>
             <td><%= lName %></td>
-            <td><%= roleName %></td>
             <td>
                 <form method="post">
                     <input type="hidden" name="staff_id" value="<%= staffId %>">
-                    <select name="new_role">
-                        <option value="Admin" <%= roleName.equals("Admin") ? "selected" : "" %>>Admin</option>
-                        <option value="Manager" <%= roleName.equals("Manager") ? "selected" : "" %>>Manager</option>
-                        <option value="Wait Staff" <%= roleName.equals("Wait Staff") ? "selected" : "" %>>Wait Staff</option>
-                        <option value="Kitchen Staff" <%= roleName.equals("Kitchen Staff") ? "selected" : "" %>>Kitchen Staff</option>
+                    <select name="new_role" onchange="this.form.submit()">
+                        <option value="Wait Staff" <%= "Wait Staff".equals(roleName) ? "selected" : "" %>>Wait Staff</option>
+                        <option value="Kitchen Staff" <%= "Kitchen Staff".equals(roleName) ? "selected" : "" %>>Kitchen Staff</option>
+                        <option value="Terminated" <%= "Terminated".equals(roleName) ? "selected" : "" %>>Terminated</option>
                     </select>
-                    <button type="submit">Update</button>
                 </form>
             </td>
         </tr>
@@ -105,12 +91,60 @@
     <%
         } catch (Exception e) {
     %>
-        <p style="color:red;">Error loading employees: <%= e.getMessage() %></p>
+        <p style="color:red;">Error loading active employees: <%= e.getMessage() %></p>
     <%
-        } finally {
-            if (rs  != null) try { rs.close();  } catch (SQLException ignore){}
-            if (ps  != null) try { ps.close();  } catch (SQLException ignore){}
-            if (conn!= null) try { conn.close();} catch (SQLException ignore){}
+        }
+    %>
+
+    <h4>Terminated Employees</h4>
+    <%
+        String sqlTerminated =
+            "SELECT s.staff_id, s.first_name, s.last_name, r.role_name " +
+            "FROM Staff s " +
+            "JOIN staff_role r ON s.staff_id = r.staff_id " +
+            "WHERE r.role_name = 'Terminated' ORDER BY s.staff_id";
+        try (Connection conn2 = DriverManager.getConnection(JDBC_URL, DB_USER, DB_PASSWORD);
+             PreparedStatement ps2 = conn2.prepareStatement(sqlTerminated);
+             ResultSet rs2 = ps2.executeQuery()) { 
+    %>
+    <table>
+        <tr>
+            <th>Staff ID</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Current Status</th>
+        </tr>
+        <%
+            while (rs2.next()) {
+                int staffId = rs2.getInt("staff_id");
+                String fName = rs2.getString("first_name");
+                String lName = rs2.getString("last_name");
+
+        %>
+        <tr>
+            <td><%= staffId %></td>
+            <td><%= fName %></td>
+            <td><%= lName %></td>
+            <td>
+                <form method="post">
+                    <input type="hidden" name="staff_id" value="<%= staffId %>">
+                    <select name="new_role" onchange="this.form.submit()">
+                        <option value="" disabled selected>Terminated</option>
+                        <option value="Wait Staff">Wait Staff</option>
+                        <option value="Kitchen Staff">Kitchen Staff</option>
+                    </select>
+                </form>
+            </td>
+        </tr>
+        <%
+            }
+        %>
+    </table>
+    <%
+        } catch (Exception e) {
+    %>
+        <p style="color:red;">Error loading terminated employees: <%= e.getMessage() %></p>
+    <%
         }
     %>
 </body>
