@@ -46,9 +46,12 @@
     Map<Integer,String> staffMap = new LinkedHashMap<>();
     Statement staffStmt = con.createStatement();
     ResultSet staffRs = staffStmt.executeQuery("SELECT s.staff_id, s.first_name, s.last_name FROM Staff s JOIN staff_role r ON s.staff_id = r.staff_id WHERE r.role_name = 'Wait Staff' ORDER BY s.last_name, s.first_name");
+    ResultSet staffRs = staffStmt.executeQuery("SELECT s.staff_id, s.first_name, s.last_name FROM Staff s JOIN staff_role r ON s.staff_id = r.staff_id WHERE r.role_name = 'Wait Staff' ORDER BY s.last_name, s.first_name");
 
     while (staffRs.next()) {
+    while (staffRs.next()) {
         int id = staffRs.getInt("staff_id");
+        String name = staffRs.getString("first_name") + " " + staffRs.getString("last_name");
         String name = staffRs.getString("first_name") + " " + staffRs.getString("last_name");
         staffMap.put(id, name);
     }
@@ -82,12 +85,16 @@
 
     Statement stmt = con.createStatement();
     ResultSet rs = stmt.executeQuery(query);
+    ResultSet rs = stmt.executeQuery(query);
 %>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
     <div class="row justify-content-center">
         <div class="col-md-6">
 <%
     while (rs.next()) {
         int tableId = rs.getInt("table_id");
+        int cap = rs.getInt("capacity");
         int cap = rs.getInt("capacity");
         int staffIdRaw = rs.getInt("table_staff_id");
         Integer staffId = (!rs.wasNull()) ? staffIdRaw : null;
@@ -104,6 +111,7 @@
             long minutes = d.toMinutesPart();
             if (hours > 0) {
                 assignedAgo = hours + "h " + minutes + "m ago";
+            } else {
             } else {
                 assignedAgo = minutes + "m ago";
             }
