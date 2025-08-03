@@ -70,6 +70,15 @@
                 </div>
             </div>
 
+            <!-- Customer Info -->
+            <div class="card mb-3 shadow-sm mx-auto" style="max-width: 500px;">
+                <div class="card-body py-3 px-4">
+                    <h5 class="card-title mb-2">Customer Info</h5>
+                    <p class="card-text mb-3">- View customer profiles and order history.</p>
+                    <a href="customerInfo.jsp" class="btn btn-primary btn-sm">View Customer Info</a>
+                </div>
+            </div>
+
             <!-- Financial Reports -->
             <div class="card mb-3 shadow-sm mx-auto" style="max-width: 500px;">
                 <div class="card-body py-3 px-4">

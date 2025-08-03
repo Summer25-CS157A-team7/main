@@ -11,12 +11,10 @@
 </head>
 <body class="container mt-5">
 
-     <!-- Back Button -->
     <div class="position-relative mb-4">
         <a href="managerHub.jsp" class="btn btn-outline-secondary position-absolute top-0 start-0" style="z-index:1;">&larr; Back to Hub</a>
         <h2 class="text-center">Customer Info</h2>
     </div>
-
 
     <!-- Filter Form -->
     <form method="get" class="row g-3 mb-4 justify-content-center">
@@ -43,7 +41,7 @@
     Class.forName("com.mysql.cj.jdbc.Driver");
     Connection con = DriverManager.getConnection(JDBC_URL, DB_USER, DB_PASSWORD);
 
-    String query = "SELECT c.customer_id, c.name, c.phone, " +
+    String query = "SELECT c.name, c.phone, " +
                "o.order_id, o.status AS order_status, o.table_id AS order_table_id, m.name AS meal_name " +
                "FROM Customer c " +
                "LEFT JOIN `Order` o ON o.customer_id = c.customer_id " +
@@ -63,18 +61,17 @@
     Statement stmt = con.createStatement();
     ResultSet rs = stmt.executeQuery(query);
 
-    Map<Integer, Map<String, Object>> customers = new LinkedHashMap<>();
+    Map<String, Map<String, Object>> customers = new LinkedHashMap<>();
 
     while (rs.next()) {
-        int custId = rs.getInt("customer_id");
-        String name = rs.getString("name");
         String phone = rs.getString("phone");
+        String name = rs.getString("name");
         Integer orderId = rs.getObject("order_id") != null ? rs.getInt("order_id") : null;
         String orderStatus = rs.getString("order_status");
         Integer orderTableId = rs.getObject("order_table_id") != null ? rs.getInt("order_table_id") : null;
         String mealName = rs.getString("meal_name");
 
-        Map<String, Object> custData = customers.computeIfAbsent(custId, k -> {
+        Map<String, Object> custData = customers.computeIfAbsent(phone, k -> {
             Map<String, Object> m = new HashMap<>();
             m.put("name", name);
             m.put("phone", phone);
@@ -88,7 +85,7 @@
                 Map<String, Object> om = new HashMap<>();
                 om.put("status", orderStatus);
                 om.put("table", orderTableId != null ? "Table #" + orderTableId : "No Table");
-                om.put("items", new LinkedHashSet<String>()); // prevent duplicates
+                om.put("items", new LinkedHashSet<String>());
                 return om;
             });
             if (mealName != null) {
@@ -104,18 +101,16 @@
 
     <div class="row justify-content-center">
         <div class="col-md-10">
-<% for (Map.Entry<Integer, Map<String, Object>> entry : customers.entrySet()) {
-       int customerId = entry.getKey();
+<% for (Map.Entry<String, Map<String, Object>> entry : customers.entrySet()) {
+       String phone = entry.getKey();
        Map<String, Object> data = entry.getValue();
        Map<Integer, Map<String, Object>> orders = (Map<Integer, Map<String, Object>>) data.get("orders");
 %>
             <div class="card mb-3">
-                <div class="card-header" data-bs-toggle="collapse" data-bs-target="#cust-<%= customerId %>">
+                <div class="card-header" data-bs-toggle="collapse" data-bs-target="#cust-<%= phone %>">
                     <strong><%= data.get("name") %></strong> | <%= data.get("phone") %>
                 </div>
-                <div id="cust-<%= customerId %>" class="collapse card-body">
-                    <p><strong>Customer ID:</strong> <%= customerId %></p>
-
+                <div id="cust-<%= phone %>" class="collapse card-body">
                     <% if (!orders.isEmpty()) { %>
                         <label><strong>Order History:</strong></label>
                         <% for (Map.Entry<Integer, Map<String, Object>> o : orders.entrySet()) { %>
