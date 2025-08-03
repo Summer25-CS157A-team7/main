@@ -1,12 +1,17 @@
 .login-container {
+  position: absolute;
+  right: 4.2rem;            
+  top: 50%;             
+  transform: translateY(-50%);
   background: #fff;
   padding: 2rem;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 400px;   
-  margin: auto;
+  max-width: 400px;
+  box-sizing: border-box;
 }
+
 
 .login-container h2 {
   text-align: center;
@@ -78,8 +83,3 @@ body {
   background-size: cover;
   font-family: Arial, sans-serif;
 }
-
-
-
-
-
