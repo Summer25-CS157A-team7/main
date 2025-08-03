@@ -1,64 +1,58 @@
 <%@ page import="java.sql.*" %>
 <%
-    request.setCharacterEncoding("UTF-8");
-    response.setContentType("text/html;charset=UTF-8");
-
-    String tableIdStr   = request.getParameter("table_id");
-    String clearId      = request.getParameter("clear");
-    String newStatus    = request.getParameter("new_status");
-    String newStaff     = request.getParameter("new_staff_id");
-    String customerName = request.getParameter("customer_name");
+    String clearFlag = request.getParameter("clear");
+    String[] tableIds    = request.getParameterValues("table_id");
+    String[] newStaffIds = request.getParameterValues("new_staff_id");
+    String[] newStatuses = request.getParameterValues("new_status");
 
     try {
         Class.forName("com.mysql.cj.jdbc.Driver");
         try (Connection con = DriverManager.getConnection(
-                "jdbc:mysql://localhost:3306/byte2bite?useSSL=false&serverTimezone=UTC",
-                "root", "Anderson!!22")) {
+                "jdbc:mysql://localhost:3306/byte2bite?autoReconnect=true&useSSL=false&zeroDateTimeBehavior=CONVERT_TO_NULL&serverTimezone=UTC",
+                "root", "Password12!")) {
 
-            if (clearId != null && !clearId.isBlank()) {
-                int clearTableId = Integer.parseInt(clearId);
-                try (PreparedStatement ps = con.prepareStatement(
-                        "UPDATE tablechart SET table_staff_id = NULL, status = 'Available', staff_assigned_time = NULL WHERE table_id = ?")) {
-                    ps.setInt(1, clearTableId);
+            if (clearFlag != null && !clearFlag.isBlank()) 
+            {
+                int tableId = Integer.parseInt(clearFlag);
+                String sql = "UPDATE tablechart SET table_staff_id = NULL, status = 'Available', staff_assigned_time = NULL WHERE table_id = ?";
+                try (PreparedStatement ps = con.prepareStatement(sql)) 
+                {
+                    ps.setInt(1, tableId);
                     ps.executeUpdate();
                 }
-            } else if (tableIdStr != null) {
-                int tableId = Integer.parseInt(tableIdStr);
-                Integer staffId = (newStaff == null || newStaff.isBlank()) ? null : Integer.parseInt(newStaff);
+                response.sendRedirect("viewTables.jsp");
+                return;
+            } 
 
-                // Handle customer name insert if needed
-                if (customerName != null && !customerName.isBlank()) {
-                    try (PreparedStatement find = con.prepareStatement("SELECT customer_id FROM Customer WHERE name = ?")) {
-                        find.setString(1, customerName);
-                        ResultSet rs = find.executeQuery();
-                        if (!rs.next()) {
-                            try (PreparedStatement insert = con.prepareStatement("INSERT INTO Customer (name, phone) VALUES (?, ?)")) {
-                                insert.setString(1, customerName);
-                                insert.setString(2, "000-000-0000"); // Default phone
-                                insert.executeUpdate();
-                            }
-                        }
-                        rs.close();
-                    }
-                }
-
-                // Always update the table after handling customer logic
+            else if (tableIds != null && newStaffIds != null && newStatuses != null) {
+                int n = Math.min(tableIds.length, Math.min(newStaffIds.length, newStatuses.length));
                 String sql = "UPDATE tablechart SET status = ?, table_staff_id = ?, staff_assigned_time = NOW() WHERE table_id = ?";
                 try (PreparedStatement ps = con.prepareStatement(sql)) {
-                    ps.setString(1, newStatus);
-                    if (staffId != null) {
-                        ps.setInt(2, staffId);
-                    } else {
-                        ps.setNull(2, java.sql.Types.INTEGER);
+                    for (int i = 0; i < n; i++) 
+                    {
+
+                        int tid = Integer.parseInt(tableIds[i]);
+                        String staffIdStr = newStaffIds[i];
+                        String status = newStatuses[i];
+
+
+                        if (staffIdStr == null || staffIdStr.isBlank()) 
+                        {
+                            continue;
+                        }
+                        int newStaff = Integer.parseInt(staffIdStr);
+
+                        ps.setString(1, status);
+                        ps.setInt(2, newStaff);
+                        ps.setInt(3, tid);
+                        ps.addBatch();
                     }
-                    ps.setInt(3, tableId);
-                    ps.executeUpdate();
+                    ps.executeBatch();
                 }
             }
-
-            response.sendRedirect("viewTables.jsp");
-
         }
+
+        response.sendRedirect("viewTables.jsp");
     } catch (Exception e) {
         out.println("<p style='color:red;'>Update failed: " + e.getMessage() + "</p>");
     }

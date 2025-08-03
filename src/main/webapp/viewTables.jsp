@@ -1,91 +1,62 @@
-<%@ page import="java.sql.*" %>
-<%@ page import="java.time.*" %>
-<%@ page import="java.util.*" %>
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Byte2Bite – View Tables</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</head>
-<body class="container mt-5">
-    <h2>View & Manage Tables</h2>
-
-    <!-- Filter Form -->
-    <form method="get" class="row g-3 mb-4">
-        <div class="col-auto">
-            <input type="number" name="capacity_filter" class="form-control" placeholder="# of Guests" value="<%= request.getParameter("capacity_filter") != null ? request.getParameter("capacity_filter") : "" %>">
-        </div>
-        <div class="col-auto">
-            <select name="status_filter" class="form-select">
-                <option value="">All Statuses</option>
-                <option value="Available" <%= "Available".equals(request.getParameter("status_filter")) ? "selected" : "" %>>Available</option>
-                <option value="Occupied" <%= "Occupied".equals(request.getParameter("status_filter")) ? "selected" : "" %>>Occupied</option>
-                <option value="Reserved" <%= "Reserved".equals(request.getParameter("status_filter")) ? "selected" : "" %>>Reserved</option>
-            </select>
-        </div>
-        <div class="col-auto">
-            <button type="submit" class="btn btn-primary">Apply Filter</button>
-        </div>
-    </form>
-
+<%@ page language="java"
+         contentType="text/html; charset=UTF-8"
+         import="java.sql.*, java.util.*, java.time.*" %>
 <%
-    String JDBC_URL = "jdbc:mysql://localhost:3306/byte2bite?autoReconnect=true&useSSL=false";
-    String DB_USER = "root";
-    String DB_PASSWORD = "Anderson!!22";
+    String firstName = (String) session.getAttribute("FirstName");
+    String lastName  = (String) session.getAttribute("LastName");
+    String role      = (String) session.getAttribute("role");
 
-    String capacityFilter = request.getParameter("capacity_filter");
-    String statusFilter = request.getParameter("status_filter");
+    
+    String JDBC_URL    = "jdbc:mysql://localhost:3306/byte2bite?autoReconnect=true&useSSL=false";
+    String DB_USER     = "root";
+    String DB_PASSWORD = "Password12!";
 
     Class.forName("com.mysql.cj.jdbc.Driver");
     Connection con = DriverManager.getConnection(JDBC_URL, DB_USER, DB_PASSWORD);
 
     Map<Integer,String> staffMap = new LinkedHashMap<>();
     Statement staffStmt = con.createStatement();
-    ResultSet staffRs = staffStmt.executeQuery("SELECT s.staff_id, s.first_name, s.last_name FROM Staff s JOIN staff_role r ON s.staff_id = r.staff_id WHERE r.role_name = 'Wait Staff' ORDER BY s.last_name, s.first_name");
+    ResultSet staffRs = staffStmt.executeQuery
+    (
+        "SELECT s.staff_id, s.first_name, s.last_name FROM Staff s JOIN staff_role r ON s.staff_id = r.staff_id WHERE r.role_name = 'Wait Staff' ORDER BY s.last_name, s.first_name"
+    );
 
-    while (staffRs.next()) {
+    while (staffRs.next()) 
+    { 
         int id = staffRs.getInt("staff_id");
-        String name = staffRs.getString("first_name") + " " + staffRs.getString("last_name");
+        String name = staffRs.getString("first_name") + " "+ staffRs.getString("last_name");
         staffMap.put(id, name);
     }
     staffRs.close();
     staffStmt.close();
 
-    List<String> customerList = new ArrayList<>();
-    Statement custStmt = con.createStatement();
-    ResultSet custRs = custStmt.executeQuery("SELECT DISTINCT name FROM Customer ORDER BY name ASC");
-    while (custRs.next()) {
-        customerList.add(custRs.getString("name"));
-    }
-    custRs.close();
-    custStmt.close();
-
-    int guests = -1;
-    if (capacityFilter != null && !capacityFilter.isEmpty()) {
-        try {
-            guests = Integer.parseInt(capacityFilter);
-        } catch (NumberFormatException ignored) {}
-    }
-
-    String query = "SELECT table_id, capacity, table_staff_id, status, staff_assigned_time FROM tablechart WHERE 1=1";
-    if (statusFilter != null && !statusFilter.isEmpty()) {
-        query += " AND status = '" + statusFilter + "'";
-    }
-    if (guests > 0) {
-        query += " AND capacity >= " + guests;
-    }
-    query += " ORDER BY status ASC, capacity ASC";
-
     Statement stmt = con.createStatement();
-    ResultSet rs = stmt.executeQuery(query);
+    ResultSet rs = stmt.executeQuery(
+        "SELECT table_id, capacity, table_staff_id, status, staff_assigned_time FROM tablechart");
 %>
-    <div class="row justify-content-center">
-        <div class="col-md-6">
+<html>
+<head>
+    <title>Manage Table Status</title>
+    <link rel="stylesheet"
+          href="/byte2bite-web/css/viewTables.css?v=<%= System.currentTimeMillis() %>" />
+</head>
+<body>
+    <div class="user-info">
+        <%= role %> : <%= firstName %> <%= lastName %>
+    </div>
+    <h1>Manage Table Status</h1>
+    <table border="1">
+        <tr>
+            <th>Table #</th>
+            <th>Capacity</th>
+            <th>Assigned Staff</th>
+            <th>Status</th>
+            <th>Clear Table</th>
+        </tr>
 <%
     while (rs.next()) {
         int tableId = rs.getInt("table_id");
-        int cap = rs.getInt("capacity");
+        int cap     = rs.getInt("capacity");
         int staffIdRaw = rs.getInt("table_staff_id");
         Integer staffId = (!rs.wasNull()) ? staffIdRaw : null;
         String status = rs.getString("status");
@@ -97,39 +68,19 @@
             Duration d = Duration.between(assignedInstant, Instant.now());
             long hours = d.toHoursPart();
             long minutes = d.toMinutesPart();
+            long seconds = d.toSecondsPart();
             if (hours > 0) {
                 assignedAgo = hours + "h " + minutes + "m ago";
-            } else {
+            } else if (minutes > 0) {
                 assignedAgo = minutes + "m ago";
+            } else if (seconds > 0) {
+                assignedAgo = seconds + "s ago";
             }
         }
 
-        String bgClass = "bg-success text-white";
-        if ("Reserved".equalsIgnoreCase(status)) bgClass = "bg-warning";
-        else if ("Occupied".equalsIgnoreCase(status)) bgClass = "bg-danger text-white";
-%>
-            <div class="card mb-4">
-                <div class="card-header d-flex justify-content-between align-items-center <%= bgClass %>" data-bs-toggle="collapse" data-bs-target="#table-<%= tableId %>">
-                    <span>Table #<%= tableId %> – Capacity: <%= cap %></span>
-                    <span><%= status %></span>
-                </div>
-                <div id="table-<%= tableId %>" class="collapse card-body">
-                    <form method="post" action="updateTable.jsp">
-                        <input type="hidden" name="table_id" value="<%= tableId %>" />
-                        <div class="mb-2">
-                            <label class="form-label">Assign Staff:</label>
-                            <select name="new_staff_id" class="form-select">
-                                <option value=""></option>
-<% for (Map.Entry<Integer,String> e : staffMap.entrySet()) {
-       String sel = (staffId != null && e.getKey().equals(staffId)) ? "selected" : "";
-%>
-                                <option value="<%= e.getKey() %>" <%= sel %>><%= e.getValue() %></option>
-<% } %>
-                            </select>
-                            <% if (!"n/a".equals(assignedAgo)) { %>
-                            <div class="text-muted small">Assigned: <%= assignedAgo %></div>
-                            <% } %>
-                        </div>
+        out.println("  <tr>");
+        out.println("    <td>" + tableId + "</td>");
+        out.println("    <td>" + cap + "</td>");
 
                         <div class="mb-2">
                             <label class="form-label">Status:</label>
@@ -142,34 +93,45 @@
                             </select>
                         </div>
 
-                        <div class="mb-2">
-                            <label class="form-label">Customer Name:</label>
-                            <input type="text" name="customer_name" class="form-control" list="customerList" value="<%= request.getParameter("customer_name") != null ? request.getParameter("customer_name") : "" %>" />
-                            <datalist id="customerList">
-<% for (String name : customerList) { %>
-                                <option value="<%= name %>">
-<% } %>
-                            </datalist>
-                        </div>
+        out.println("        <select name='new_staff_id' onchange='this.form.submit()'>");
+        if (staffId == null) 
+        {
+            out.println("          <option value=\"\" selected></option>");
 
-                        <div class="d-flex justify-content-between">
-                            <button type="submit" class="btn btn-primary">Confirm Changes</button>
-                    </form>
+        } 
+        else 
+        {
+            out.println("          <option value=\"\"></option>");
+        }
+        for (Map.Entry<Integer,String> e : staffMap.entrySet()) {
+            String sel = (staffId != null && e.getKey().equals(staffId)) ? "selected" : "";
+            out.println("          <option value='" + e.getKey() + "' " + sel + ">" + e.getValue() + "</option>");
+        }
+        out.println("        </select>");
 
-                    <form method="post" action="updateTable.jsp">
-                        <input type="hidden" name="clear" value="<%= tableId %>" />
-                        <button type="submit" class="btn btn-sm btn-danger">Clear Table</button>
-                    </form>
-                        </div>
-                </div>
-            </div>
-<%
+        if (!"n/a".equals(assignedAgo)) {
+            out.println("        <div class='assigned' style='display:inline;margin-left:6px;'>(Assigned: " + assignedAgo + ")</div>");
+        }
+
+        out.println("    </td>");
+        out.println("    <td>");
+
+        out.println("        <select name='new_status' onchange='this.form.submit()'>");
+        for (String s : new String[] {"Available","Occupied","Reserved"}) {
+            String sel2 = s.equalsIgnoreCase(status) ? "selected" : "";
+            out.println("          <option value='" + s + "' " + sel2 + ">" + s + "</option>");
+        }
+        out.println("        </select>");
+        out.println("      </form>");
+        out.println("    </td>");
+
+        out.println("    <td>");
+        out.println("      <form method='post' action='updateTable.jsp' style='display:inline;'>");
+        out.println("        <input type='hidden' name='clear' value='" + tableId + "' />");
+        out.println("        <button type='submit'>Clear</button>");
+        out.println("      </form>");
+        out.println("    </td>");
+
+        out.println("  </tr>");
     }
-    rs.close();
-    stmt.close();
-    con.close();
 %>
-        </div>
-    </div>
-</body>
-</html>
