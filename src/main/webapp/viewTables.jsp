@@ -10,8 +10,10 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body class="container mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <a href="employeeHub.jsp" class="btn btn-outline-secondary">&larr; Back to Hub</a>
+
+    <!-- Bakc button -->
+    <div class="position-relative mb-4">
+        <a href="employeeHub.jsp" class="btn btn-outline-secondary position-absolute top-0 start-0" style="z-index:1;">&larr; Back to Hub</a>
         <h2 class="text-center flex-grow-1">Table Availability</h2>
     </div>
 
