@@ -13,6 +13,12 @@
   <div class="login-container">
     <h2>Login</h2>
 
+    <% String err = (String) request.getAttribute("error");
+       if (err != null) { %>
+      <div class="error-message"><%= err %></div>
+    <% } %>
+
+
     <form method="post" action="${pageContext.request.contextPath}/login">
       <div class="form-group">
         <label for="staff_id">Staff ID</label>
