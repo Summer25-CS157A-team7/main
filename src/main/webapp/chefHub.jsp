@@ -15,7 +15,7 @@
                 <div class="card-body py-3 px-4">
                     <h5 class="card-title mb-2">Modify Active Orders</h5>
                     <p class="card-text mb-3">- Update order status: Preparing, Ready, Complete.</p>
-                    <a href="modifyOrderStatus.jsp" class="btn btn-primary btn-sm">Manage Orders</a>
+                    <a href="KitchenStaff.jsp" class="btn btn-primary btn-sm">Manage Orders</a>
                 </div>
             </div>
 

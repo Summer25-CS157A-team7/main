@@ -28,6 +28,16 @@
                 </div>
             </div>
 
+            <!-- Dining Overview -->
+            <div class="card mb-3 shadow-sm mx-auto" style="max-width: 500px;">
+                <div class="card-body py-3 px-4">
+                    <h5 class="card-title mb-2">Table Availability</h5>
+                    <p class="card-text mb-3">- View Table Availability</p>
+                    <a href="viewTables.jsp" class="btn btn-primary btn-sm">Go to Table Dashboard</a>
+                </div>
+            </div>
+
+
             <!-- Clock In/Out -->
             <div class="card mb-3 shadow-sm mx-auto" style="max-width: 500px;">
                 <div class="card-body py-3 px-4">
