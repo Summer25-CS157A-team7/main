@@ -37,7 +37,7 @@
                 <div class="card-body py-3 px-4">
                     <h5 class="card-title mb-2">Order Overview</h5>
                     <p class="card-text mb-3">- View active and completed orders.<br>- View and modify order details including staff, table, and status.</p>
-                    <a href="orderViewMenu.jsp" class="btn btn-primary btn-sm">Go to Order Overview</a>
+                    <a href="modifyOrderStatus.jsp" class="btn btn-primary btn-sm">Go to Order Overview</a>
                 </div>
             </div>
 
