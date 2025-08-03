@@ -19,6 +19,7 @@ h2 {
 }
 
 h3 {
+   margin-top: 4rem;
   font-size: 1.45rem;
   color: #316bf4;
 }
@@ -223,3 +224,32 @@ body {
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
 
+.success {
+  padding: 0.5rem 0.75rem;
+  border-radius: 5px;
+  color: #3be232;
+  border: none;
+  box-shadow: none; 
+  font-weight: bold;
+}
+
+
+.main-link-container {
+  position: absolute;
+  top: 55px;
+  right: 40px;
+}
+
+.main-btn {
+  display: inline-block;
+  padding: 6px 14px;
+  background: #fff;
+  color: #2251CD;
+  border: 1px solid #2251CD;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  letter-spacing: 0.5px;
+  transition: filter .2s ease, transform .2s ease;
+}

@@ -126,34 +126,38 @@ class Period {
 %>
 
 
-%>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
   <title>Time Tracking</title>
 </head>
+<link rel="stylesheet" href="<%= request.getContextPath() %>/css/timeTracking.css?v=<%= System.currentTimeMillis() %>" />
 <body>
+
     <div class="user-info">
-      <%= role %> : <%= firstName %> <%= lastName %> Staff ID: <%= staffId %>
+        <%= role %> : <%= firstName %> <%= lastName %>
     </div>
 
+  <div class="main-link-container">
+    <a class="main-btn" href="<%= request.getContextPath() %>/managerHub.jsp">Main Page</a>
+  </div>
 
     <h2>Time Tracking</h2>
-
     <div class="clock-container">
       <div class="clock">
         Current Time: <span id="liveClock">--:--:--</span>
       </div>
     </div>
 
+    <%
+      String inDisplay  = (clockedIn && lastIn != null) ? lastIn : "";
+      String outDisplay = (clockedIn && lastOut != null) ? lastOut : "";
+    %>
     <div class="times">
-      <p><strong>Last Clock In:</strong>
-        <%= lastIn  != null ? lastIn  : "— not yet clocked in —"  %>
-      </p>
-      <p><strong>Last Clock Out:</strong>
-        <%= lastOut != null ? lastOut : "— not yet clocked out —" %>
-      </p>
+      <p><strong>Last Clock In:</strong> <%= inDisplay %></p>
+      <p><strong>Last Clock Out:</strong> <%= outDisplay %></p>
     </div>
 
     <form action="${pageContext.request.contextPath}/time-tracking" method="post">

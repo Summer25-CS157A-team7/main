@@ -16,9 +16,18 @@
     String lastName = (String) session.getAttribute("LastName");
     String role = (String) session.getAttribute("role");
 %>
+    <div class="top-right">
     <div class="user-info">
-      <%= role %> : <%= firstName %> <%= lastName %> 
+        <%= role %> : <%= firstName %> <%= lastName %>
     </div>
+    <div class="user-icon">
+        <a href="timeTracking.jsp">
+        <img src="<%= request.getContextPath() %>/images/clock.png" alt="Clock" />
+        </a>
+    </div>
+    </div>
+
+
     <div class="row justify-content-center">
         <div class="col-md-8 text-center">
             <h2 class="mb-4">Manager Hub</h2>
