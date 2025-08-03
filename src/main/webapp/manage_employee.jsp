@@ -57,10 +57,10 @@
     <table>
         <div class="employee-tables">
         <tr>
-            <th>Staff ID</th>
-            <th>First Name</th>
-            <th>Last Name</th>
-            <th> Role</th>
+            <th><strong>Staff ID</strong></th>
+            <th><strong>First Name</strong></th>
+            <th><strong>Last Name</strong></th>
+            <th><strong>Role</strong></th>
         </tr>
         <%
             while (rs.next()) {
@@ -113,10 +113,10 @@
     <table>
         <div class="employee-tables">
         <tr>
-            <th>Staff ID</th>
-            <th>First Name</th>
-            <th>Last Name</th>
-            <th>Current Status</th>
+            <th><strong>Staff ID</strong></th>
+            <th><strong>First Name</strong></th>
+            <th><strong>Last Name</strong></th>
+            <th><strong>Role</strong></th>
         </tr>
         <%
             while (rs2.next()) {

@@ -1,6 +1,7 @@
 <%@ page import="java.sql.*" %>
 <%@ page import="java.util.*" %>
 <%@ page import="java.time.*" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
 <!DOCTYPE html>
 <html>
@@ -10,14 +11,15 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body class="container mt-5">
-    <div class="text-center">
+    <div class="text-center mb-4">
         <h2>Table Availability</h2>
     </div>
 
     <!-- Filter Form -->
     <form method="get" class="row g-3 mb-4 justify-content-center">
         <div class="col-auto">
-            <input type="number" name="capacity_filter" class="form-control" placeholder="# of Guests" value="<%= request.getParameter("capacity_filter") != null ? request.getParameter("capacity_filter") : "" %>">
+            <input type="number" name="capacity_filter" class="form-control" placeholder="# of Guests"
+                   value="<%= request.getParameter("capacity_filter") != null ? request.getParameter("capacity_filter") : "" %>">
         </div>
         <div class="col-auto">
             <select name="status_filter" class="form-select">
@@ -34,92 +36,108 @@
     </form>
 
 <%
-    String JDBC_URL = "jdbc:mysql://localhost:3306/byte2bite?autoReconnect=true&useSSL=false";
+    // DB config
+    String JDBC_URL = "jdbc:mysql://localhost:3306/byte2bite?autoReconnect=true&useSSL=false&serverTimezone=UTC";
     String DB_USER = "root";
+    String DB_PASSWORD = "Password12!"; // exact, no trailing spaces
 
     String capacityFilter = request.getParameter("capacity_filter");
     String statusFilter = request.getParameter("status_filter");
 
-    Class.forName("com.mysql.cj.jdbc.Driver");
-    Connection con = DriverManager.getConnection(JDBC_URL, DB_USER, DB_PASSWORD);
-
-    Map<Integer,String> staffMap = new LinkedHashMap<>();
-    Statement staffStmt = con.createStatement();
-    ResultSet staffRs = staffStmt.executeQuery("SELECT s.staff_id, s.first_name, s.last_name FROM Staff s JOIN staff_role r ON s.staff_id = r.staff_id WHERE r.role_name = 'Wait Staff' ORDER BY s.last_name, s.first_name");
-    ResultSet staffRs = staffStmt.executeQuery("SELECT s.staff_id, s.first_name, s.last_name FROM Staff s JOIN staff_role r ON s.staff_id = r.staff_id WHERE r.role_name = 'Wait Staff' ORDER BY s.last_name, s.first_name");
-
-    while (staffRs.next()) {
-    while (staffRs.next()) {
-        int id = staffRs.getInt("staff_id");
-        String name = staffRs.getString("first_name") + " " + staffRs.getString("last_name");
-        String name = staffRs.getString("first_name") + " " + staffRs.getString("last_name");
-        staffMap.put(id, name);
-    }
-    staffRs.close();
-    staffStmt.close();
-
-    Map<Integer, String> customerMap = new HashMap<>();
-    Statement custStmt = con.createStatement();
-    ResultSet custRs = custStmt.executeQuery("SELECT customer_id, name FROM Customer");
-    while (custRs.next()) {
-        customerMap.put(custRs.getInt("customer_id"), custRs.getString("name"));
-    }
-    custRs.close();
-    custStmt.close();
-
     int guests = -1;
     if (capacityFilter != null && !capacityFilter.isEmpty()) {
-        try {
-            guests = Integer.parseInt(capacityFilter);
-        } catch (NumberFormatException ignored) {}
+        try { guests = Integer.parseInt(capacityFilter); } catch (NumberFormatException ignored) {}
     }
 
-    String query = "SELECT table_id, capacity, status, table_staff_id, staff_assigned_time, customer_id FROM tablechart WHERE 1=1";
+    // *** ADDED: correct maps ***
+    Map<Integer, String> staffMap = new LinkedHashMap<>();
+    Map<String, String> customerNameByPhone = new HashMap<>(); // phone -> name
+
+    // Build filtered query using customer_phone (schema change)
+    StringBuilder baseSql = new StringBuilder(
+        "SELECT table_id, capacity, status, table_staff_id, staff_assigned_time, customer_phone " + // *** CHANGED ***
+        "FROM tablechart WHERE 1=1"
+    );
+    List<Object> params = new ArrayList<>();
     if (statusFilter != null && !statusFilter.isEmpty()) {
-        query += " AND status = '" + statusFilter + "'";
+        baseSql.append(" AND status = ?");
+        params.add(statusFilter);
     }
     if (guests > 0) {
-        query += " AND capacity >= " + guests;
+        baseSql.append(" AND capacity >= ?");
+        params.add(guests);
     }
-    query += " ORDER BY status ASC, capacity ASC";
+    baseSql.append(" ORDER BY status ASC, capacity ASC");
 
-    Statement stmt = con.createStatement();
-    ResultSet rs = stmt.executeQuery(query);
-    ResultSet rs = stmt.executeQuery(query);
-%>
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-<%
-    while (rs.next()) {
-        int tableId = rs.getInt("table_id");
-        int cap = rs.getInt("capacity");
-        int cap = rs.getInt("capacity");
-        int staffIdRaw = rs.getInt("table_staff_id");
-        Integer staffId = (!rs.wasNull()) ? staffIdRaw : null;
-        String status = rs.getString("status");
-        int customerId = rs.getInt("customer_id");
-        String customerName = customerMap.getOrDefault(customerId, "");
-        Timestamp assignedTs = rs.getTimestamp("staff_assigned_time");
+    boolean anyRows = false;
 
-        String assignedAgo = "n/a";
-        if (assignedTs != null) {
-            Instant assignedInstant = assignedTs.toInstant();
-            Duration d = Duration.between(assignedInstant, Instant.now());
-            long hours = d.toHoursPart();
-            long minutes = d.toMinutesPart();
-            if (hours > 0) {
-                assignedAgo = hours + "h " + minutes + "m ago";
-            } else {
-            } else {
-                assignedAgo = minutes + "m ago";
+    try {
+        Class.forName("com.mysql.cj.jdbc.Driver");
+    } catch (ClassNotFoundException e) {
+        out.println("<div class='alert alert-danger'>JDBC driver not found: " + e.getMessage() + "</div>");
+    }
+
+    try (Connection con = DriverManager.getConnection(JDBC_URL, DB_USER, DB_PASSWORD)) {
+
+        // Load wait staff (unchanged)
+        String staffSql = "SELECT s.staff_id, s.first_name, s.last_name " +
+                         "FROM Staff s JOIN staff_role r ON s.staff_id = r.staff_id " +
+                         "WHERE r.role_name = 'Wait Staff' ORDER BY s.last_name, s.first_name";
+        try (PreparedStatement psStaff = con.prepareStatement(staffSql);
+             ResultSet staffRs = psStaff.executeQuery()) {
+            while (staffRs.next()) {
+                int id = staffRs.getInt("staff_id");
+                String name = staffRs.getString("first_name") + " " + staffRs.getString("last_name");
+                staffMap.put(id, name);
             }
         }
 
-        String bgClass = "bg-success text-white";
-        if ("Reserved".equalsIgnoreCase(status)) bgClass = "bg-warning";
-        else if ("Occupied".equalsIgnoreCase(status)) bgClass = "bg-danger text-white";
+        // *** ADDED: load customer names keyed by phone (no customer_id now) ***
+        try (PreparedStatement psCust = con.prepareStatement("SELECT phone, name FROM Customer");
+             ResultSet custRs = psCust.executeQuery()) {
+            while (custRs.next()) {
+                String phone = custRs.getString("phone");
+                String name = custRs.getString("name");
+                customerNameByPhone.put(phone, name);
+            }
+        }
+
+        // Execute main filtered query
+        try (PreparedStatement ps = con.prepareStatement(baseSql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    anyRows = true;
+                    int tableId = rs.getInt("table_id");
+                    int cap = rs.getInt("capacity");
+                    int staffIdRaw = rs.getInt("table_staff_id");
+                    Integer staffId = (!rs.wasNull()) ? staffIdRaw : null;
+                    String status = rs.getString("status");
+
+                    // *** CHANGED: use customer_phone instead of customer_id ***
+                    String customerPhone = rs.getString("customer_phone");
+                    String customerName = (customerPhone != null) ? customerNameByPhone.getOrDefault(customerPhone, "") : "";
+
+                    Timestamp assignedTs = rs.getTimestamp("staff_assigned_time");
+                    String assignedAgo = "n/a";
+                    if (assignedTs != null) {
+                        Instant assignedInstant = assignedTs.toInstant();
+                        Duration d = Duration.between(assignedInstant, Instant.now());
+                        long hours = d.toHoursPart();
+                        long minutes = d.toMinutesPart();
+                        if (hours > 0) {
+                            assignedAgo = hours + "h " + minutes + "m ago";
+                        } else {
+                            assignedAgo = minutes + "m ago";
+                        }
+                    }
+
+                    String bgClass = "bg-success text-white";
+                    if ("Reserved".equalsIgnoreCase(status)) bgClass = "bg-warning";
+                    else if ("Occupied".equalsIgnoreCase(status)) bgClass = "bg-danger text-white";
 %>
             <div class="card mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center <%= bgClass %>" data-bs-toggle="collapse" data-bs-target="#table-<%= tableId %>">
@@ -127,57 +145,69 @@
                     <span><%= status %></span>
                 </div>
                 <div id="table-<%= tableId %>" class="collapse card-body">
-                    <form method="post" action="updateTable.jsp">
+                    <form method="post" action="updateTable.jsp" class="mb-2">
                         <input type="hidden" name="table_id" value="<%= tableId %>" />
-                        <div class="mb-2">
-                            <label class="form-label">Assign Staff:</label>
-                            <select name="new_staff_id" class="form-select" <%= ("Occupied".equalsIgnoreCase(status) || "Reserved".equalsIgnoreCase(status)) ? "disabled" : "" %>>
-                                <option value=""></option>
-<% for (Map.Entry<Integer,String> e : staffMap.entrySet()) {
-       String sel = (staffId != null && e.getKey().equals(staffId)) ? "selected" : "";
-%>
-                                <option value="<%= e.getKey() %>" <%= sel %>><%= e.getValue() %></option>
-<% } %>
-                            </select>
-                            <% if (!"n/a".equals(assignedAgo)) { %>
-                            <div class="text-muted small">Assigned: <%= assignedAgo %></div>
-                            <% } %>
+                        <div class="row">
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label">Assign Staff:</label>
+                                <select name="new_staff_id" class="form-select" <%= ("Occupied".equalsIgnoreCase(status) || "Reserved".equalsIgnoreCase(status)) ? "disabled" : "" %>>
+                                    <option value=""></option>
+        <% for (Map.Entry<Integer,String> e : staffMap.entrySet()) {
+               String sel = (staffId != null && e.getKey().equals(staffId)) ? "selected" : "";
+        %>
+                                    <option value="<%= e.getKey() %>" <%= sel %>><%= e.getValue() %></option>
+        <% } %>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label">Status:</label>
+                                <select name="new_status" class="form-select" <%= ("Occupied".equalsIgnoreCase(status) || "Reserved".equalsIgnoreCase(status)) ? "disabled" : "" %>>
+        <% for (String s : new String[] {"Available","Occupied","Reserved"}) {
+               if (!s.equalsIgnoreCase(status)) {
+        %>
+                                    <option value="<%= s %>"><%= s %></option>
+        <%    }
+           } %>
+                                </select>
+                            </div>
                         </div>
 
-                        <div class="mb-2">
-                            <label class="form-label">Status:</label>
-                            <select name="new_status" class="form-select" <%= ("Occupied".equalsIgnoreCase(status) || "Reserved".equalsIgnoreCase(status)) ? "disabled" : "" %>>
-<% for (String s : new String[] {"Available","Occupied","Reserved"}) {
-       if (!s.equalsIgnoreCase(status)) {
-%>
-                                <option value="<%= s %>"><%= s %></option>
-<%    } 
-   } %>
-                            </select>
+                        <!-- Customer block: phone is primary key -->
+        <% if ("Available".equalsIgnoreCase(status)) { %>
+                        <div class="row mb-2">
+                            <div class="col-md-6">
+                                <label class="form-label">Customer Name:</label>
+                                <input type="text" name="customer_name" class="form-control" list="customerList" value="">
+                                <datalist id="customerList">
+        <% for (String name : customerNameByPhone.values()) { %>
+                                    <option value="<%= name %>">
+        <% } %>
+                                </datalist>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Customer Phone:</label>
+                                <input type="text" name="customer_phone" class="form-control" placeholder="e.g., 555-123-4567" value="">
+                            </div>
                         </div>
-
-<% if ("Available".equalsIgnoreCase(status)) { %>
-                        <div class="mb-2">
-                            <label class="form-label">Customer Name:</label>
-                            <input type="text" name="customer_name" class="form-control" list="customerList">
-                            <datalist id="customerList">
-<% for (String name : customerMap.values()) { %>
-                                <option value="<%= name %>">
-<% } %>
-                            </datalist>
+        <% } else if (customerPhone != null && !customerName.isEmpty()) { %>
+                        <div class="row mb-2">
+                            <div class="col-md-6">
+                                <label class="form-label">Customer:</label>
+                                <input type="text" class="form-control" value="<%= customerName %>" disabled>
+                                <input type="hidden" name="customer_name" value="<%= customerName %>">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Phone:</label>
+                                <input type="text" class="form-control" value="<%= customerPhone %>" disabled>
+                                <input type="hidden" name="customer_phone" value="<%= customerPhone %>">
+                            </div>
                         </div>
-<% } else if (!customerName.isEmpty()) { %>
-                        <div class="mb-2">
-                            <label class="form-label">Customer:</label>
-                            <input type="text" class="form-control" value="<%= customerName %>" disabled>
-                            <input type="hidden" name="customer_name" value="<%= customerName %>">
-                        </div>
-<% } %>
+        <% } %>
 
                         <div class="d-flex justify-content-between">
-<% if ("Available".equalsIgnoreCase(status)) { %>
+        <% if ("Available".equalsIgnoreCase(status)) { %>
                             <button type="submit" class="btn btn-primary">Confirm</button>
-<% } %>
+        <% } %>
                     </form>
 
                     <form method="post" action="updateTable.jsp">
@@ -188,12 +218,18 @@
                 </div>
             </div>
 <%
-    }
-    rs.close();
-    stmt.close();
-    con.close();
+                } // end while
+            } // end resultset
+        } // end prepared statement
+
+        if (!anyRows) {
 %>
-        </div>
-    </div>
+        <div class="alert alert-info">No tables match the current filters.</div>
+<%
+        }
+    } catch (SQLException e) {
+        out.println("<div class='alert alert-danger'>Database error: " + e.getMessage() + "<br>Query: " + baseSql + "</div>");
+    }
+%>
 </body>
 </html>
