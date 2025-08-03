@@ -10,7 +10,7 @@
 
     String JDBC_URL    = "jdbc:mysql://localhost:3306/byte2bite?autoReconnect=true&useSSL=false";
     String DB_USER     = "root";
-    String DB_PASSWORD = "ADD YOUR PASSWORD HERE";
+    String DB_PASSWORD = "Password12!";
 
 
     String newRole = request.getParameter("new_role");
@@ -38,14 +38,13 @@
 <head>
     <meta charset="UTF-8">
     <title>Manager Page</title>
-    <style>
-      table { border-collapse: collapse; width: 80%; margin-top: 20px; }
-      th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-      th { background: #eee; }
-    </style>
+    <link rel="stylesheet" href="/byte2bite-web/css/manage_employee.css?v=<%= System.currentTimeMillis() %>" />
 </head>
 <body>
-    <h2>Welcome, <%= firstName %> <%= lastName %>! You’ve successfully logged in as <%= role %>.</h2>
+
+    <div class="user-info">
+        <%= role %> : <%= firstName %> <%= lastName %>
+    </div>
 
     <h3>Active Employees</h3>
     <%
@@ -56,6 +55,7 @@
              ResultSet rs = ps.executeQuery()) {
     %>
     <table>
+        <div class="employee-tables">
         <tr>
             <th>Staff ID</th>
             <th>First Name</th>
@@ -76,17 +76,20 @@
             <td>
                 <form method="post">
                     <input type="hidden" name="staff_id" value="<%= staffId %>">
+                    <div class="custom-select">
                     <select name="new_role" onchange="this.form.submit()">
                         <option value="Wait Staff" <%= "Wait Staff".equals(roleName) ? "selected" : "" %>>Wait Staff</option>
                         <option value="Kitchen Staff" <%= "Kitchen Staff".equals(roleName) ? "selected" : "" %>>Kitchen Staff</option>
                         <option value="Terminated" <%= "Terminated".equals(roleName) ? "selected" : "" %>>Terminated</option>
                     </select>
+                    </div>
                 </form>
             </td>
         </tr>
         <%
             }
         %>
+        </div>
     </table>
     <%
         } catch (Exception e) {
@@ -108,6 +111,7 @@
              ResultSet rs2 = ps2.executeQuery()) { 
     %>
     <table>
+        <div class="employee-tables">
         <tr>
             <th>Staff ID</th>
             <th>First Name</th>
@@ -128,17 +132,20 @@
             <td>
                 <form method="post">
                     <input type="hidden" name="staff_id" value="<%= staffId %>">
+                    <div class="custom-select">
                     <select name="new_role" onchange="this.form.submit()">
                         <option value="" disabled selected>Terminated</option>
                         <option value="Wait Staff">Wait Staff</option>
                         <option value="Kitchen Staff">Kitchen Staff</option>
                     </select>
+                    </div>
                 </form>
             </td>
         </tr>
         <%
             }
         %>
+        </div>
     </table>
     <%
         } catch (Exception e) {
