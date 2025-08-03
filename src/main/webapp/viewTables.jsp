@@ -14,6 +14,7 @@
         <h2>Table Availability</h2>
     </div>
 
+
     <!-- Filter Form -->
     <form method="get" class="row g-3 mb-4 justify-content-center">
         <div class="col-auto">
@@ -36,6 +37,7 @@
 <%
     String JDBC_URL = "jdbc:mysql://localhost:3306/byte2bite?autoReconnect=true&useSSL=false";
     String DB_USER = "root";
+    String DB_PASSWORD = "Anderson!!22";
 
     String capacityFilter = request.getParameter("capacity_filter");
     String statusFilter = request.getParameter("status_filter");

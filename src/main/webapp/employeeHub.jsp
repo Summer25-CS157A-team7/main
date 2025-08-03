@@ -24,7 +24,7 @@
                 <div class="card-body py-3 px-4">
                     <h5 class="card-title mb-2">View Active Orders</h5>
                     <p class="card-text mb-3">- Check the status of current orders assigned to tables.</p>
-                    <a href="waitActiveOrders.jsp" class="btn btn-primary btn-sm">View Active Orders</a>
+                    <a href="modifyOrderStatus.jsp" class="btn btn-primary btn-sm">View Active Orders</a>
                 </div>
             </div>
 
@@ -43,7 +43,7 @@
                 <div class="card-body py-3 px-4">
                     <h5 class="card-title mb-2">Clock In / Out</h5>
                     <p class="card-text mb-3">- Log work hours by clocking in, taking breaks, or ending shift.</p>
-                    <a href="staffLog.jsp" class="btn btn-primary btn-sm">Manage Time</a>
+                    <a href="timeTracking.jsp" class="btn btn-primary btn-sm">Manage Time</a>
                 </div>
             </div>
         </div>
