@@ -151,13 +151,12 @@ class Period {
       </div>
     </div>
 
-    <%
-      String inDisplay  = (clockedIn && lastIn != null) ? lastIn : "";
+    <% String inDisplay  = (clockedIn && lastIn != null) ? lastIn : "";
       String outDisplay = (clockedIn && lastOut != null) ? lastOut : "";
     %>
     <div class="times">
-      <p><strong>Last Clock In:</strong> <%= inDisplay %></p>
-      <p><strong>Last Clock Out:</strong> <%= outDisplay %></p>
+      <p><strong> Clock In:</strong> <%= inDisplay %></p>
+      <p><strong>Clock Out:</strong> <%= outDisplay %></p>
     </div>
 
     <form action="${pageContext.request.contextPath}/time-tracking" method="post">

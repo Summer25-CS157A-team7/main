@@ -11,7 +11,7 @@
 </head>
 <body class="container mt-5">
 
-    <!-- Bakc button -->
+    <!-- Back button -->
     <div class="position-relative mb-4">
         <a href="employeeHub.jsp" class="btn btn-outline-secondary position-absolute top-0 start-0" style="z-index:1;">&larr; Back to Hub</a>
         <h2 class="text-center flex-grow-1">Table Availability</h2>
@@ -39,85 +39,85 @@
 <%
     String JDBC_URL = "jdbc:mysql://localhost:3306/byte2bite?autoReconnect=true&useSSL=false";
     String DB_USER = "root";
-    String DB_PASSWORD = "Anderson!!22";
+    String DB_PASSWORD = "Password12!";
 
     String capacityFilter = request.getParameter("capacity_filter");
     String statusFilter = request.getParameter("status_filter");
 
     Class.forName("com.mysql.cj.jdbc.Driver");
-    Connection con = DriverManager.getConnection(JDBC_URL, DB_USER, DB_PASSWORD);
+    try (Connection con = DriverManager.getConnection(JDBC_URL, DB_USER, DB_PASSWORD)) {
 
-    Map<Integer,String> staffMap = new LinkedHashMap<>();
-    Statement staffStmt = con.createStatement();
-    ResultSet staffRs = staffStmt.executeQuery("SELECT s.staff_id, s.first_name, s.last_name FROM Staff s JOIN staff_role r ON s.staff_id = r.staff_id WHERE r.role_name = 'Wait Staff' ORDER BY s.last_name, s.first_name");
+        // load wait staff
+        Map<Integer,String> staffMap = new LinkedHashMap<>();
+        try (Statement staffStmt = con.createStatement();
+             ResultSet staffRs = staffStmt.executeQuery(
+                 "SELECT s.staff_id, s.first_name, s.last_name FROM Staff s " +
+                 "JOIN staff_role r ON s.staff_id = r.staff_id " +
+                 "WHERE r.role_name = 'Wait Staff' ORDER BY s.last_name, s.first_name")) {
 
-    while (staffRs.next()) {
-        int id = staffRs.getInt("staff_id");
-        String name = staffRs.getString("first_name") + " " + staffRs.getString("last_name");
-        staffMap.put(id, name);
-    }
-    staffRs.close();
-    staffStmt.close();
+            while (staffRs.next()) {
+                int id = staffRs.getInt("staff_id");
+                String name = staffRs.getString("first_name") + " " + staffRs.getString("last_name");
+                staffMap.put(id, name);
+            }
+        }
 
-    Map<Integer, String[]> customerMap = new HashMap<>();
-    Statement custStmt = con.createStatement();
-    ResultSet custRs = custStmt.executeQuery("SELECT customer_id, name, phone FROM Customer");
-    while (custRs.next()) {
-        customerMap.put(custRs.getInt("customer_id"), new String[] {custRs.getString("name"), custRs.getString("phone")});
-    }
-    custRs.close();
-    custStmt.close();
+        int guests = -1;
+        if (capacityFilter != null && !capacityFilter.isEmpty()) {
+            try {
+                guests = Integer.parseInt(capacityFilter);
+            } catch (NumberFormatException ignored) {}
+        }
 
-    int guests = -1;
-    if (capacityFilter != null && !capacityFilter.isEmpty()) {
-        try {
-            guests = Integer.parseInt(capacityFilter);
-        } catch (NumberFormatException ignored) {}
-    }
+        // Query with optional customer by phone
+        String query =
+            "SELECT t.table_id, t.capacity, t.status, t.table_staff_id, t.staff_assigned_time, " +
+            "t.customer_phone, c.name AS customer_name " +
+            "FROM TableChart t " +
+            "LEFT JOIN Customer c ON t.customer_phone = c.phone " +
+            "WHERE 1=1";
 
-    String query = "SELECT table_id, capacity, status, table_staff_id, staff_assigned_time, customer_id FROM tablechart WHERE 1=1";
-    if (statusFilter != null && !statusFilter.isEmpty()) {
-        query += " AND status = '" + statusFilter + "'";
-    }
-    if (guests > 0) {
-        query += " AND capacity >= " + guests;
-    }
-    query += " ORDER BY status ASC, capacity ASC";
+        if (statusFilter != null && !statusFilter.isEmpty()) {
+            query += " AND t.status = '" + statusFilter + "'";
+        }
+        if (guests > 0) {
+            query += " AND t.capacity >= " + guests;
+        }
+        query += " ORDER BY t.status ASC, t.capacity ASC";
 
-    Statement stmt = con.createStatement();
-    ResultSet rs = stmt.executeQuery(query);
+        try (Statement stmt = con.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
 %>
     <div class="row justify-content-center">
         <div class="col-md-6">
 <%
-    while (rs.next()) {
-        int tableId = rs.getInt("table_id");
-        int cap = rs.getInt("capacity");
-        int staffIdRaw = rs.getInt("table_staff_id");
-        Integer staffId = (!rs.wasNull()) ? staffIdRaw : null;
-        String status = rs.getString("status");
-        int customerId = rs.getInt("customer_id");
-        String[] customerInfo = customerMap.get(customerId);
-        String customerName = (customerInfo != null) ? customerInfo[0] : "";
-        String customerPhone = (customerInfo != null) ? customerInfo[1] : "";
-        Timestamp assignedTs = rs.getTimestamp("staff_assigned_time");
+            while (rs.next()) {
+                int tableId = rs.getInt("table_id");
+                int cap = rs.getInt("capacity");
+                int staffIdRaw = rs.getInt("table_staff_id");
+                Integer staffId = (!rs.wasNull()) ? staffIdRaw : null;
+                String status = rs.getString("status");
+                Timestamp assignedTs = rs.getTimestamp("staff_assigned_time");
 
-        String assignedAgo = "n/a";
-        if (assignedTs != null) {
-            Instant assignedInstant = assignedTs.toInstant();
-            Duration d = Duration.between(assignedInstant, Instant.now());
-            long hours = d.toHoursPart();
-            long minutes = d.toMinutesPart();
-            if (hours > 0) {
-                assignedAgo = hours + "h " + minutes + "m ago";
-            } else {
-                assignedAgo = minutes + "m ago";
-            }
-        }
+                String customerPhone = rs.getString("customer_phone"); // optional
+                String customerName = rs.getString("customer_name");   // may be null if no match
 
-        String bgClass = "bg-success text-white";
-        if ("Reserved".equalsIgnoreCase(status)) bgClass = "bg-warning";
-        else if ("Occupied".equalsIgnoreCase(status)) bgClass = "bg-danger text-white";
+                String assignedAgo = "n/a";
+                if (assignedTs != null) {
+                    Instant assignedInstant = assignedTs.toInstant();
+                    Duration d = Duration.between(assignedInstant, Instant.now());
+                    long hours = d.toHoursPart();
+                    long minutes = d.toMinutesPart();
+                    if (hours > 0) {
+                        assignedAgo = hours + "h " + minutes + "m ago";
+                    } else {
+                        assignedAgo = minutes + "m ago";
+                    }
+                }
+
+                String bgClass = "bg-success text-white";
+                if ("Reserved".equalsIgnoreCase(status)) bgClass = "bg-warning";
+                else if ("Occupied".equalsIgnoreCase(status)) bgClass = "bg-danger text-white";
 %>
             <div class="card mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center <%= bgClass %>" data-bs-toggle="collapse" data-bs-target="#table-<%= tableId %>">
@@ -125,7 +125,7 @@
                     <span><%= status %></span>
                 </div>
                 <div id="table-<%= tableId %>" class="collapse card-body">
-                    <form method="post" action="updateTable.jsp">
+                    <form method="post" action="updateTable.jsp" class="mb-2">
                         <input type="hidden" name="table_id" value="<%= tableId %>" />
                         <div class="mb-2">
                             <label class="form-label">Assign Staff:</label>
@@ -138,7 +138,7 @@
 <% } %>
                             </select>
                             <% if (!"n/a".equals(assignedAgo)) { %>
-                            <div class="text-muted small">Assigned: <%= assignedAgo %></div>
+                                <div class="text-muted small">Assigned: <%= assignedAgo %></div>
                             <% } %>
                         </div>
 
@@ -154,30 +154,36 @@
                             </select>
                         </div>
 
-<% if ("Available".equalsIgnoreCase(status)) { %>
+                        <!-- customer display / input -->
+<% if (!"Available".equalsIgnoreCase(status) && (customerName != null || customerPhone != null)) { %>
+                        <div class="mb-2">
+                            <label class="form-label">Customer:</label>
+                            <input type="text" class="form-control" value="<%= customerName != null ? customerName : "" %>" disabled>
+                            <input type="hidden" name="existing_customer_name" value="<%= customerName != null ? customerName : "" %>">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Phone:</label>
+                            <input type="text" class="form-control" value="<%= customerPhone != null ? customerPhone : "" %>" disabled>
+                            <input type="hidden" name="existing_customer_phone" value="<%= customerPhone != null ? customerPhone : "" %>">
+                        </div>
+<% } else if ("Available".equalsIgnoreCase(status)) { %>
                         <div class="mb-2">
                             <label class="form-label">Customer Name:</label>
                             <input type="text" name="customer_name" class="form-control" list="customerList">
                             <datalist id="customerList">
-<% for (String[] info : customerMap.values()) { %>
-                                <option value="<%= info[0] %>">
-<% } %>
+<% 
+    try (Statement custStmt = con.createStatement();
+         ResultSet custRs = custStmt.executeQuery("SELECT name FROM Customer")) {
+        while (custRs.next()) {
+%>
+                                <option value="<%= custRs.getString("name") %>">
+<%      }
+    } catch (SQLException ignore) {} %>
                             </datalist>
                         </div>
                         <div class="mb-2">
                             <label class="form-label">Customer Phone:</label>
                             <input type="text" name="customer_phone" class="form-control" placeholder="e.g. 555-123-4567">
-                        </div>
-<% } else if (!customerName.isEmpty()) { %>
-                        <div class="mb-2">
-                            <label class="form-label">Customer:</label>
-                            <input type="text" class="form-control" value="<%= customerName %>" disabled>
-                            <input type="hidden" name="customer_name" value="<%= customerName %>">
-                        </div>
-                        <div class="mb-2">
-                            <label class="form-label">Phone:</label>
-                            <input type="text" class="form-control" value="<%= customerPhone %>" disabled>
-                            <input type="hidden" name="customer_phone" value="<%= customerPhone %>">
                         </div>
 <% } %>
 
@@ -185,22 +191,25 @@
 <% if ("Available".equalsIgnoreCase(status)) { %>
                             <button type="submit" class="btn btn-primary">Confirm</button>
 <% } %>
+                        </div>
                     </form>
 
                     <form method="post" action="updateTable.jsp">
                         <input type="hidden" name="clear" value="<%= tableId %>" />
                         <button type="submit" class="btn btn-sm btn-danger">Clear Table</button>
                     </form>
-                        </div>
                 </div>
             </div>
 <%
-    }
-    rs.close();
-    stmt.close();
-    con.close();
+            } // end while
 %>
         </div>
     </div>
+<%
+        } // end resultset try
+    } catch (Exception e) {
+        out.println("<p style='color:red;'>Error: " + e.getMessage() + "</p>");
+    }
+%>
 </body>
 </html>

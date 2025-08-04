@@ -55,14 +55,6 @@
             </div>
 
 
-            <!-- Clock In/Out -->
-            <div class="card mb-3 shadow-sm mx-auto" style="max-width: 500px;">
-                <div class="card-body py-3 px-4">
-                    <h5 class="card-title mb-2">Clock In / Out</h5>
-                    <p class="card-text mb-3">- Log work hours by clocking in, taking breaks, or ending shift.</p>
-                    <a href="timeTracking.jsp" class="btn btn-primary btn-sm">Manage Time</a>
-                </div>
-            </div>
         </div>
     </div>
 </body>

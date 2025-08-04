@@ -58,17 +58,20 @@ h3 {
   display: flex;
   justify-content: center;
   margin: 1rem 0;
+  font-size: 1.1rem;              
+  font-weight: 600;
+  text-align: center;
 }
 
 .clock {
   background: #fff;
-  padding: 14px 20px;
+  padding: 16px 24px;
   border-radius: var(--radius);
   box-shadow: 0 16px 48px rgba(0,0,0,0.06);
   font-size: 1rem;
-  display: inline-flex;
+  display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: 4px;
   border: 1px solid #000;
   font-weight: 500;
 }
@@ -94,7 +97,7 @@ h3 {
 .times p {
   flex: 1 1 200px;
   background: #fff;
-  padding: 10px 14px;
+  padding: 14px 20px;
   border-radius: 6px;
   border: 1px solid #000;
   box-sizing: border-box;

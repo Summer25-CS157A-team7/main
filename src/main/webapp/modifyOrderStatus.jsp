@@ -1,44 +1,67 @@
 <%@ page import="java.sql.*" %>
 <%@ page import="java.util.*" %>
+<%@ page import="java.time.*" %>
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Byte2Bite: Manage Orders</title>
+    <title>Byte2Bite: Manage Tickets</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body class="container mt-5">
 
-    <!-- Back Button Row -->
+<%!
+    // helper for elapsed
+    String formatElapsed(Timestamp ts) {
+        if (ts == null) return "N/A";
+        Duration diff = Duration.between(ts.toInstant(), Instant.now());
+        long totalMin = diff.toMinutes();
+        long hours = totalMin / 60;
+        long minutes = totalMin % 60;
+        if (hours > 0) return hours + "h " + minutes + "m ago";
+        return minutes + "m ago";
+    }
+
+    // ticket metadata holder, now includes staffName
+    class TicketMeta {
+        int ticketId;
+        String status;
+        Object tableId;
+        Object capacity;
+        Timestamp placedAt;
+        String staffName; // FIX: added staff serving
+        List<Map<String, Object>> meals = new ArrayList<>();
+    }
+%>
+
+    <!-- Back Button -->
     <div class="mb-2">
         <a href="employeeHub.jsp" class="btn btn-outline-secondary">&larr; Back to Hub</a>
     </div>
 
-    <!-- Centered Title -->
     <div class="text-center mb-4">
-        <h2>Order Status</h2>
+        <h2>Ticket Status</h2>
     </div>
 
-
-    <!-- Filter Form -->
+    <!-- Filters -->
     <form method="get" class="row g-3 mb-4 justify-content-center">
         <div class="col-auto">
             <input type="number" name="table_id" class="form-control" placeholder="Filter by Table #" value="<%= request.getParameter("table_id") != null ? request.getParameter("table_id") : "" %>">
         </div>
         <div class="col-auto">
-            <input type="number" name="order_id" class="form-control" placeholder="Filter by Order #" value="<%= request.getParameter("order_id") != null ? request.getParameter("order_id") : "" %>">
+            <input type="number" name="ticket_id" class="form-control" placeholder="Filter by Ticket #" value="<%= request.getParameter("ticket_id") != null ? request.getParameter("ticket_id") : "" %>">
         </div>
         <div class="col-auto">
             <select name="status_filter" class="form-select">
                 <option value="">All Status</option>
-                <option value="Pending" <%= "Pending".equals(request.getParameter("status_filter")) ? "selected" : "" %>>Pending</option>
+                <option value="Placed" <%= "Placed".equals(request.getParameter("status_filter")) ? "selected" : "" %>>Placed</option>
                 <option value="Preparing" <%= "Preparing".equals(request.getParameter("status_filter")) ? "selected" : "" %>>Being Prepared</option>
                 <option value="Ready" <%= "Ready".equals(request.getParameter("status_filter")) ? "selected" : "" %>>Order Ready</option>
                 <option value="Completed" <%= "Completed".equals(request.getParameter("status_filter")) ? "selected" : "" %>>Completed</option>
             </select>
         </div>
         <div class="col-auto">
-            <button type="submit" class="btn btn-primary">Apply Filter</button>
+            <button class="btn btn-primary" type="submit">Apply Filter</button>
             <a href="modifyOrderStatus.jsp" class="btn btn-secondary">Clear Filter</a>
         </div>
     </form>
@@ -46,105 +69,191 @@
 <%
     String db = "byte2bite";
     String user = "root";
-    String password = "Anderson!!22";
+    String password = "Password12!";
     String tableFilter = request.getParameter("table_id");
     String statusFilter = request.getParameter("status_filter");
-    String orderIdFilter = request.getParameter("order_id");
+    String ticketIdFilter = request.getParameter("ticket_id");
 
-    List<String> activeStatuses = Arrays.asList("Pending", "Preparing", "Ready");
-    List<Map<String, Object>> activeOrders = new ArrayList<>();
-    List<Map<String, Object>> completedOrders = new ArrayList<>();
+    Map<Integer, TicketMeta> activeMap = new LinkedHashMap<>();
+    Map<Integer, TicketMeta> completedMap = new LinkedHashMap<>();
 
     try {
         Class.forName("com.mysql.cj.jdbc.Driver");
-        Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/" + db + "?autoReconnect=true&useSSL=false", user, password);
+    } catch (ClassNotFoundException cnfe) {
+        out.println("<div class='alert alert-danger'>JDBC driver load failed: " + cnfe.getMessage() + "</div>");
+    }
 
-        String query = "SELECT o.order_id, c.customer_id, c.name, o.table_id, o.status, m.name AS meal_name, m.category, m.price " +
-                       "FROM customer c JOIN `order` o USING (customer_id) JOIN meal m ON o.meal_id = m.meal_id WHERE 1=1";
+    // FIX: include staff join to get serving staff name
+    String query =
+        "SELECT t.ticket_id, t.status, t.placed_at, tc.table_id, tc.capacity, " +
+        "st.first_name AS staff_first, st.last_name AS staff_last, " +
+        "m.name AS meal_name, m.price " +
+        "FROM tickets t " +
+        "LEFT JOIN sessions s ON t.session_id = s.session_id " +
+        "LEFT JOIN TableChart tc ON s.table_id = tc.table_id " +
+        "LEFT JOIN Staff st ON tc.table_staff_id = st.staff_id " + // FIX: staff serving the table
+        "JOIN orders o ON o.ticket_id = t.ticket_id " +
+        "JOIN meal m ON o.meal_id = m.meal_id " +
+        "WHERE 1=1";
 
-        if (tableFilter != null && !tableFilter.trim().isEmpty()) {
-            query += " AND o.table_id = " + tableFilter;
+    StringBuilder sb = new StringBuilder(query);
+    List<Object> params = new ArrayList<>();
+
+    if (tableFilter != null && !tableFilter.trim().isEmpty()) {
+        sb.append(" AND tc.table_id = ?");
+        try { params.add(Integer.parseInt(tableFilter.trim())); } catch (NumberFormatException ignored) {}
+    }
+    if (ticketIdFilter != null && !ticketIdFilter.trim().isEmpty()) {
+        sb.append(" AND t.ticket_id = ?");
+        try { params.add(Integer.parseInt(ticketIdFilter.trim())); } catch (NumberFormatException ignored) {}
+    }
+    if (statusFilter != null && !statusFilter.trim().isEmpty()) {
+        sb.append(" AND t.status = ?");
+        params.add(statusFilter.trim());
+    }
+
+    sb.append(" ORDER BY t.placed_at DESC, t.ticket_id");
+
+    String jdbcUrl = "jdbc:mysql://localhost:3306/" + db + "?autoReconnect=true&useSSL=false&serverTimezone=UTC";
+    try (Connection con = DriverManager.getConnection(jdbcUrl, user, password);
+         PreparedStatement ps = con.prepareStatement(sb.toString())) {
+
+        for (int i = 0; i < params.size(); i++) {
+            ps.setObject(i + 1, params.get(i));
         }
-        if (orderIdFilter != null && !orderIdFilter.trim().isEmpty()) {
-            query += " AND o.order_id = " + orderIdFilter;
-        }
-        if (statusFilter != null && !statusFilter.trim().isEmpty()) {
-            query += " AND o.status = '" + statusFilter + "'";
-        }
 
-        Statement stmt = con.createStatement();
-        ResultSet rs = stmt.executeQuery(query);
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                int ticketId = rs.getInt("ticket_id");
+                String status = rs.getString("status");
+                Object tableId = rs.getObject("table_id");
+                Object capacity = rs.getObject("capacity");
+                Timestamp placedAt = rs.getTimestamp("placed_at");
+                String mealName = rs.getString("meal_name");
+                double price = rs.getDouble("price");
+                String staffFirst = rs.getString("staff_first");
+                String staffLast = rs.getString("staff_last");
+                String staffName = null;
+                if (staffFirst != null || staffLast != null) {
+                    staffName = ((staffFirst != null ? staffFirst : "") + " " + (staffLast != null ? staffLast : "")).trim();
+                }
 
-        while (rs.next()) {
-            Map<String, Object> order = new HashMap<>();
-            order.put("order_id", rs.getInt("order_id"));
-            order.put("status", rs.getString("status"));
-            order.put("table_id", rs.getInt("table_id"));
-            order.put("customer_name", rs.getString("name"));
-            order.put("meal_name", rs.getString("meal_name"));
-            order.put("category", rs.getString("category"));
-            order.put("price", rs.getDouble("price"));
+                Map<String, Object> meal = new HashMap<>();
+                meal.put("meal_name", mealName);
+                meal.put("price", price);
 
-            if ("Completed".equalsIgnoreCase((String) order.get("status"))) {
-                completedOrders.add(order);
-            } else {
-                activeOrders.add(order);
+                Map<Integer, TicketMeta> target = "Completed".equalsIgnoreCase(status) ? completedMap : activeMap;
+                TicketMeta meta = target.get(ticketId);
+                if (meta == null) {
+                    meta = new TicketMeta();
+                    meta.ticketId = ticketId;
+                    meta.status = status;
+                    meta.tableId = tableId;
+                    meta.capacity = capacity;
+                    meta.placedAt = placedAt;
+                    meta.staffName = staffName; // FIX: store staff name
+                    target.put(ticketId, meta);
+                }
+                meta.meals.add(meal);
             }
         }
-        rs.close();
-        stmt.close();
-        con.close();
     } catch (Exception e) {
-        out.println("<p style='color:red;'>Error: " + e.getMessage() + "</p>");
+        out.println("<div class='alert alert-danger'>Error: " + e.getMessage() + "</div>");
     }
 %>
 
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <h4 class="mb-3">Active Orders</h4>
-<% for (Map<String, Object> order : activeOrders) {
-    String status = (String) order.get("status");
-    String statusLabel = "Being Prepared";
-    String statusClass = "secondary";
-    boolean completeEnabled = false;
-
-    if ("Ready".equalsIgnoreCase(status)) {
-        statusLabel = "Order Ready";
-        statusClass = "info";
-        completeEnabled = true;
-    } else if ("Completed".equalsIgnoreCase(status)) {
-        statusLabel = "Completed";
-        statusClass = "success";
-    }
-%>
-            <div class="card mb-3">
-                <div class="card-header">
-                    <strong>Order #<%= order.get("order_id") %></strong> | Table <%= order.get("table_id") %> | <%= order.get("customer_name") %>
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h4 class="mb-3">Active Tickets</h4>
+        <% if (activeMap.isEmpty()) { %>
+            <p>No active tickets.</p>
+        <% } else {
+            for (TicketMeta ticket : activeMap.values()) {
+                String status = ticket.status;
+                String statusLabel;
+                String statusClass;
+                boolean completeEnabled = false;
+                if ("Ready".equalsIgnoreCase(status)) {
+                    statusLabel = "Order Ready";
+                    statusClass = "info";
+                    completeEnabled = true;
+                } else if ("Preparing".equalsIgnoreCase(status)) {
+                    statusLabel = "Being Prepared";
+                    statusClass = "warning";
+                } else if ("Pending".equalsIgnoreCase(status) || "Placed".equalsIgnoreCase(status)) {
+                    statusLabel = "Placed";
+                    statusClass = "secondary";
+                } else {
+                    statusLabel = status;
+                    statusClass = "secondary";
+                }
+        %>
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>Ticket #<%= ticket.ticketId %></strong>
+                    <div class="small text-muted">
+                        Table: <%= ticket.tableId != null ? ticket.tableId : "N/A" %>
+                        <% if (ticket.staffName != null && !ticket.staffName.isBlank()) { %>
+                            | Served by: <%= ticket.staffName %>
+                        <% } %>
+                        | Placed: <%= formatElapsed(ticket.placedAt) %>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <p>Status: <button class="btn btn-sm btn-<%= statusClass %>" disabled><%= statusLabel %></button></p>
-                    <form method="post" action="updateStatus.jsp">
-                        <input type="hidden" name="order_id" value="<%= order.get("order_id") %>" />
-                        <input type="hidden" name="new_status" value="Completed" />
-                        <button type="submit" class="btn btn-sm btn-success" <%= completeEnabled ? "" : "disabled" %>>Mark as Completed</button>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-<%= statusClass %>"><%= statusLabel %></span>
+                    <form method="post" action="updateStatus.jsp" class="d-inline">
+                        <input type="hidden" name="ticket_id" value="<%= ticket.ticketId %>">
+                        <input type="hidden" name="new_status" value="Completed">
+                        <button class="btn btn-sm btn-success" type="submit" <%= "Ready".equalsIgnoreCase(status) ? "" : "disabled" %>>Mark as Completed</button>
                     </form>
                 </div>
             </div>
-<% } %>
+            <div class="card-body">
+                <% for (Map<String, Object> meal : ticket.meals) { %>
+                    <div class="mb-2">
+                        <strong><%= meal.get("meal_name") %></strong> - $<%= String.format("%.2f", (Double) meal.get("price")) %>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+        <%  }
+        } %>
 
-            <h4 class="mt-5 mb-3">Completed Orders</h4>
-<% for (Map<String, Object> order : completedOrders) { %>
-            <div class="card mb-3">
-                <div class="card-header collapsed" data-bs-toggle="collapse" data-bs-target="#collapse-<%= order.get("order_id") %>" style="cursor:pointer;">
-                    <strong>Order #<%= order.get("order_id") %></strong> | Table <%= order.get("table_id") %> | <%= order.get("customer_name") %> <span class="text-success">Completed</span>
+        <h4 class="mt-5 mb-3">Completed Tickets</h4>
+        <% if (completedMap.isEmpty()) { %>
+            <p>No completed tickets.</p>
+        <% } else {
+            for (TicketMeta ticket : completedMap.values()) {
+        %>
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>Ticket #<%= ticket.ticketId %></strong>
+                    <div class="small text-muted">
+                        Table: <%= ticket.tableId != null ? ticket.tableId : "N/A" %>
+                        <% if (ticket.staffName != null && !ticket.staffName.isBlank()) { %>
+                            | Served by: <%= ticket.staffName %>
+                        <% } %>
+                        | Placed: <%= formatElapsed(ticket.placedAt) %>
+                    </div>
                 </div>
-                <div id="collapse-<%= order.get("order_id") %>" class="collapse card-body">
-                    <p>Meal: <%= order.get("meal_name") %> (<%= order.get("category") %>)</p>
-                    <p>Price: $<%= String.format("%.2f", order.get("price")) %></p>
+                <div>
+                    <span class="badge bg-success">Completed</span>
                 </div>
             </div>
-<% } %>
+            <div class="card-body">
+                <% for (Map<String, Object> meal : ticket.meals) { %>
+                    <div class="mb-2">
+                        <strong><%= meal.get("meal_name") %></strong> - $<%= String.format("%.2f", (Double) meal.get("price")) %>
+                    </div>
+                <% } %>
+            </div>
         </div>
+        <%  }
+        } %>
     </div>
+</div>
+
 </body>
 </html>

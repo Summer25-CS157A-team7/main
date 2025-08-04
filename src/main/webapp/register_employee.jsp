@@ -20,24 +20,6 @@
         <%= role %> : <%= firstName %> <%= lastName %>
     </div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
     <main class="page-center">
         <div class="form-container">
             <h2>Register Employee</h2>
