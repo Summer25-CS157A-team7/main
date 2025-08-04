@@ -56,7 +56,7 @@
                     <h5 class="card-title mb-2">Inventory Control</h5>
                     <p class="card-text mb-3">- View food inventory and supplier info.</p>
                     <a href="InventoryTracker.jsp" class="btn btn-primary btn-sm">Food Inventory</a>
-                    <a href="viewSuppliers.jsp" class="btn btn-outline-secondary btn-sm ms-2">Suppliers</a>
+                    <a href="sellerInfo.jsp" class="btn btn-outline-secondary btn-sm ms-2">Suppliers</a>
                 </div>
             </div>
 
@@ -85,7 +85,6 @@
                     <h5 class="card-title mb-2">Financial Reports</h5>
                     <p class="card-text mb-3">- View revenue breakdown and transaction logs.</p>
                     <a href="revenueTracker.jsp" class="btn btn-primary btn-sm">Revenue Report</a>
-                    <a href="transactionLogs.jsp" class="btn btn-outline-secondary btn-sm ms-2">Transaction Logs</a>
                 </div>
             </div>
         </div>
