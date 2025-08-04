@@ -42,7 +42,7 @@
                 <div class="card-body py-3 px-4">
                     <h5 class="card-title mb-2">View Ingredient Usage</h5>
                     <p class="card-text mb-3">- Check ingredients used in current active orders for preparation.</p>
-                    <a href="ingredientUsage.jsp" class="btn btn-primary btn-sm">View Usage</a>
+                    <a href="InventoryTracker.jsp" class="btn btn-primary btn-sm">View Usage</a>
                 </div>
             </div>
 
