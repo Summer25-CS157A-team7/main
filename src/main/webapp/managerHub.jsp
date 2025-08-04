@@ -54,9 +54,10 @@
             <div class="card mb-3 shadow-sm mx-auto" style="max-width: 500px;">
                 <div class="card-body py-3 px-4">
                     <h5 class="card-title mb-2">Inventory Control</h5>
-                    <p class="card-text mb-3">- View food inventory and supplier info.</p>
+                    <p class="card-text mb-3">- View/Modify food inventory and supplier info.</p>
                     <a href="InventoryTracker.jsp" class="btn btn-primary btn-sm">Food Inventory</a>
                     <a href="sellerInfo.jsp" class="btn btn-outline-secondary btn-sm ms-2">Suppliers</a>
+                    <a href="manageSeller.jsp" class="btn btn-outline-secondary btn-sm ms-2">manage Suppliers</a>
                 </div>
             </div>
 
