@@ -13,11 +13,7 @@
     {
         int sessionId;
     }
-
-    PreparedStatement sessStmt = con.prepareStatement("SELECT session_id FROM sessions WHERE (closed_at IS NULL ) ORDER BY session_id DESC");
-    ResultSet sessRs = sessStmt.executeQuery();
-
-
+    List<SessionOption> sessions = new ArrayList<>();
 
     try {
         Class.forName("com.mysql.cj.jdbc.Driver");
@@ -25,10 +21,24 @@
             "jdbc:mysql://localhost:3306/byte2bite?autoReconnect=true&useSSL=false",
             "root", "Password12!");
 
+
+
+        PreparedStatement sessStmt = con.prepareStatement("SELECT session_id FROM sessions WHERE (closed_at IS NULL ) ORDER BY session_id DESC");
+        ResultSet sessRs = sessStmt.executeQuery();
+
         Statement stmt = con.createStatement();
         ResultSet rs = stmt.executeQuery("SELECT m.meal_id, m.name,m.price, c.name AS categoryNames FROM meal m JOIN category c ON m.category_id = c.category_id ORDER BY c.name, m.name");
 
-        while (rs.next()) {
+        while (sessRs.next()) 
+        {
+                SessionOption so = new SessionOption();
+                so.sessionId = sessRs.getInt("session_id");
+                sessions.add(so);
+        }
+
+
+        while (rs.next()) 
+        {
             int mealId = rs.getInt("meal_id");
             String mealName = rs.getString("name");
             String categoryName = rs.getString("categoryNames");
@@ -68,7 +78,23 @@
 
     <form method="post" action="submitOrder.jsp">
         <label>Table Number:</label>
-        <input type="number" name="table_id" required /><br/><br/>
+    <div class="mb-3">
+        <label for="session_id"><strong>Session:</strong></label>
+        <select name="session_id" id="session_id" class="form-select">
+            <option value="">-- Select Existing Session --</option>
+            <%
+                for (SessionOption s : sessions) {
+            %>
+                <option value="<%= s.sessionId %>">Session #<%= s.sessionId %></option>
+            <%
+                }
+            %>
+        </select>
+    </div>
+            </div>
+
+
+
 
     <h2>Entree</h2>
         <table >
