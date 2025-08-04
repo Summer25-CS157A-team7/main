@@ -55,7 +55,7 @@
                 <div class="card-body py-3 px-4">
                     <h5 class="card-title mb-2">Inventory Control</h5>
                     <p class="card-text mb-3">- View food inventory and supplier info.</p>
-                    <a href="viewInventory.jsp" class="btn btn-primary btn-sm">Food Inventory</a>
+                    <a href="InventoryTracker.jsp" class="btn btn-primary btn-sm">Food Inventory</a>
                     <a href="viewSuppliers.jsp" class="btn btn-outline-secondary btn-sm ms-2">Suppliers</a>
                 </div>
             </div>
