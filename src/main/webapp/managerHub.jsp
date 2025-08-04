@@ -84,7 +84,7 @@
                 <div class="card-body py-3 px-4">
                     <h5 class="card-title mb-2">Financial Reports</h5>
                     <p class="card-text mb-3">- View revenue breakdown and transaction logs.</p>
-                    <a href="revenueReport.jsp" class="btn btn-primary btn-sm">Revenue Report</a>
+                    <a href="revenueTracker.jsp" class="btn btn-primary btn-sm">Revenue Report</a>
                     <a href="transactionLogs.jsp" class="btn btn-outline-secondary btn-sm ms-2">Transaction Logs</a>
                 </div>
             </div>
