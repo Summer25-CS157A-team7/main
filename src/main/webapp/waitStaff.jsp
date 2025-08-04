@@ -27,7 +27,7 @@
         ResultSet sessRs = sessStmt.executeQuery();
 
         Statement stmt = con.createStatement();
-        ResultSet rs = stmt.executeQuery("SELECT m.meal_id, m.name,m.price, c.name AS categoryNames FROM meal m JOIN category c ON m.category_id = c.category_id ORDER BY c.name, m.name");
+        ResultSet rs = stmt.executeQuery("SELECT meal_id, name,price, category FROM meal ORDER BY category, name");
 
         while (sessRs.next()) 
         {
@@ -41,7 +41,7 @@
         {
             int mealId = rs.getInt("meal_id");
             String mealName = rs.getString("name");
-            String categoryName = rs.getString("categoryNames");
+            String categoryName = rs.getString("category");
             double mealPrice = rs.getDouble("price");
 
                 String rowDescription = "<div style='margin-bottom:8px;'>" + "<label><input type='checkbox' name='meal_ids' value='" + mealId + "' /> " + mealName + " ($" + mealPrice + ")</label>" + "</div>";
