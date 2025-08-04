@@ -46,14 +46,7 @@
                 </div>
             </div>
 
-            <!-- Low Stock Alerts -->
-            <div class="card mb-3 shadow-sm mx-auto" style="max-width: 500px;">
-                <div class="card-body py-3 px-4">
-                    <h5 class="card-title mb-2"> Food Stock</h5>
-                    <p class="card-text mb-3">- List of inventory items below stock threshold.</p>
-                    <a href="lowStockPanel.jsp" class="btn btn-primary btn-sm">View Alerts</a>
-                </div>
-            </div>
+            
         </div>
     </div>
 </body>
