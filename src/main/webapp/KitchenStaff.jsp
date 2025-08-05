@@ -21,7 +21,6 @@
     String DB_PASSWORD = "Password12!";
     String JDBC_URL = "jdbc:mysql://localhost:3306/byte2bite?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
 
-    // Only update on explicit POST
     if ("POST".equalsIgnoreCase(request.getMethod())) {
         String updateTicketId = request.getParameter("update_ticket_id");
         String newStatus = request.getParameter("new_status");
@@ -31,10 +30,25 @@
                 ps.setString(1, newStatus);
                 ps.setInt(2, Integer.parseInt(updateTicketId));
                 ps.executeUpdate();
+
+
+                if ("Ready".equalsIgnoreCase(newStatus)) {
+                    try (PreparedStatement psDeduct = conn.prepareStatement(
+                        "UPDATE Food_Inventory fi " +
+                        "JOIN made_with mw    ON fi.item_name = mw.item_name " +
+                        "JOIN orders o        ON o.meal_id    = mw.meal_id " +
+                        "SET fi.quantity = fi.quantity - mw.quantity " +
+                        "WHERE o.ticket_id = ?"
+                    )) {
+                        psDeduct.setInt(1, Integer.parseInt(updateTicketId));
+                        psDeduct.executeUpdate();
+                    }
+                }
+
                 response.sendRedirect("KitchenStaff.jsp");
                 return;
             } catch (Exception e) {
-                out.println("<p style='color:red;'>Error updating status: " + e.getMessage() + "</p>");
+                out.println("Error updating status: " + e.getMessage());
             }
         }
     }
@@ -49,7 +63,6 @@
 <body class="container my-5">
     <h2 class="mb-4">Kitchen Dashboard</h2>
 
-    <!-- Active Tickets -->
     <h3 class="mt-4">Active Tickets</h3>
 <%
     String activeSql =
@@ -57,7 +70,7 @@
         "FROM tickets t " +
         "JOIN orders o ON o.ticket_id = t.ticket_id " +
         "JOIN meal m ON o.meal_id = m.meal_id " +
-        "WHERE t.status <> 'Ready' " +
+        "WHERE t.status <> 'Ready'AND t.status <> 'Completed' " +
         "ORDER BY t.placed_at DESC, t.ticket_id";
 
     try (Connection conn = DriverManager.getConnection(JDBC_URL, DB_USER, DB_PASSWORD);
@@ -100,7 +113,6 @@
                     </span>
                 <% } %>
 
-                <!-- Preparing button: only if not already Preparing -->
                 <% if (!"Preparing".equalsIgnoreCase(ticketStatus)) { %>
                 <form method="post" class="d-inline">
                     <input type="hidden" name="update_ticket_id" value="<%= ticketId %>">
@@ -109,7 +121,6 @@
                 </form>
                 <% } %>
 
-                <!-- Ready button: only if not already Ready -->
                 <% if (!"Ready".equalsIgnoreCase(ticketStatus)) { %>
                 <form method="post" class="d-inline ms-1">
                     <input type="hidden" name="update_ticket_id" value="<%= ticketId %>">
@@ -145,7 +156,6 @@
     }
 %>
 
-    <!-- Ready Tickets -->
     <h3 class="mt-5">Ready Tickets</h3>
 <%
     String readySql =
@@ -153,7 +163,7 @@
         "FROM tickets t " +
         "JOIN orders o ON o.ticket_id = t.ticket_id " +
         "JOIN meal m ON o.meal_id = m.meal_id " +
-        "WHERE t.status = 'Ready' " +
+        "WHERE t.status = 'Ready' AND t.status <> 'Completed' " +
         "ORDER BY t.placed_at ASC, t.ticket_id";
 
     try (Connection conn2 = DriverManager.getConnection(JDBC_URL, DB_USER, DB_PASSWORD);
@@ -189,7 +199,6 @@
             </div>
             <div class="d-flex align-items-center gap-2">
                 <span class="badge bg-success"><%= ticketStatus %></span>
-                <!-- Allow reverting from Ready to Preparing -->
                 <% if (!"Preparing".equalsIgnoreCase(ticketStatus)) { %>
                 <form method="post" class="d-inline">
                     <input type="hidden" name="update_ticket_id" value="<%= ticketId %>">

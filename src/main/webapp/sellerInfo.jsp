@@ -1,122 +1,147 @@
 <%@ page import="java.sql.*" %>
 <%@ page import="java.util.*" %>
-<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ page contentType="text/html; charset=UTF-8" language="java" %>
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Byte2Bite: Seller Information</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function filterIngredients() {
+        function filterSuppliers() {
             const input = document.getElementById("filterInput").value.toLowerCase();
-            const items = document.querySelectorAll(".accordion-item");
-
-            items.forEach(item => {
-                const text = item.innerText.toLowerCase();
-                item.style.display = text.includes(input) ? "" : "none";
+            document.querySelectorAll(".accordion-item").forEach(item => {
+                item.style.display = item.innerText.toLowerCase().includes(input) ? "" : "none";
             });
         }
-
         function clearFilter() {
             document.getElementById("filterInput").value = "";
-            filterIngredients();
+            filterSuppliers();
         }
     </script>
 </head>
 <body class="container mt-5">
     <div class="position-relative mb-4">
         <a href="managerHub.jsp" class="btn btn-outline-secondary position-absolute top-0 start-0">&larr; Back to Hub</a>
-        <h2 class="text-center">Ingredients & Their Suppliers</h2>
+        <h2 class="text-center">Suppliers & Their Ingredients</h2>
     </div>
 
-    <!-- Filter -->
-    <div class="mb-4 text-center d-flex justify-content-center gap-2">
-        <input id="filterInput" type="text" class="form-control w-50" placeholder="Filter by ingredient or supplier..." onkeyup="filterIngredients()">
-        <button class="btn btn-secondary" onclick="clearFilter()">Clear</button>
+    <div class="mb-4 d-flex justify-content-between align-items-center">
+        <div class="d-flex gap-2">
+            <input id="filterInput" type="text" class="form-control" style="width:300px;"
+                   placeholder="Filter by supplier or ingredient…" onkeyup="filterSuppliers()">
+            <button class="btn btn-secondary" onclick="clearFilter()">Clear</button>
+        </div>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">
+            Add Supplier
+        </button>
     </div>
 
-    <div class="mx-auto" style="width: 75%;">
-        <div class="accordion" id="accordionIngredients">
-            <%
-                String JDBC_URL = "jdbc:mysql://localhost:3306/byte2bite?autoReconnect=true&useSSL=false";
-                String DB_USER = "root";
-                String DB_PASSWORD = "Anderson!!22";
+    <div class="accordion" id="accordionSuppliers">
+<%
+    String JDBC_URL    = "jdbc:mysql://localhost:3306/byte2bite?autoReconnect=true&useSSL=false";
+    String DB_USER     = "root";
+    String DB_PASSWORD = "Password12!";
 
-                Class.forName("com.mysql.cj.jdbc.Driver");
-                Connection con = DriverManager.getConnection(JDBC_URL, DB_USER, DB_PASSWORD);
+    Class.forName("com.mysql.cj.jdbc.Driver");
+    try (Connection con = DriverManager.getConnection(JDBC_URL, DB_USER, DB_PASSWORD)) {
+        String sql =
+            "SELECT s.seller_id, s.name AS supplier_name, s.phone, f.item_name AS ingredient " + 
+            "FROM supplier s " + 
+            "JOIN sold_by sb ON s.seller_id = sb.seller_id " +        
+            "JOIN food_inventory f ON sb.item_name = f.item_name " +  
+            "ORDER BY s.name, f.item_name";
 
-                String sql = "SELECT f.inventory_id, f.name AS ingredient, " +
-                             "s.seller_id, s.name AS supplier_name, s.phone, sb.cost " +
-                             "FROM food_inventory f " +
-                             "JOIN sold_by sb ON f.inventory_id = sb.inventory_id " +
-                             "JOIN supplier s ON sb.seller_id = s.seller_id " +
-                             "ORDER BY f.name, s.name";
+        try (PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
 
-                PreparedStatement stmt = con.prepareStatement(sql);
-                ResultSet rs = stmt.executeQuery();
+            Map<Integer, Map<String,Object>> supMap = new LinkedHashMap<>();
+            while (rs.next()) {
+                int supId        = rs.getInt("seller_id");
+                String supName   = rs.getString("supplier_name");
+                String phone     = rs.getString("phone");
+                String ingredient= rs.getString("ingredient");
 
-                Map<Integer, Map<String, Object>> ingredientMap = new LinkedHashMap<>();
+                supMap.computeIfAbsent(supId, k -> {
+                    Map<String,Object> data = new HashMap<>();
+                    data.put("name", supName);
+                    data.put("phone", phone);
+                    data.put("items", new ArrayList<String>());
+                    return data;
+                });
 
-                while (rs.next()) {
-                    int inventoryId = rs.getInt("inventory_id");
+                @SuppressWarnings("unchecked")
+                List<String> items = (List<String>) supMap.get(supId).get("items");
+                items.add(ingredient);
+            }
 
-                    if (!ingredientMap.containsKey(inventoryId)) {
-                        Map<String, Object> ingredientData = new HashMap<>();
-                        ingredientData.put("name", rs.getString("ingredient"));
-                        ingredientData.put("sellers", new ArrayList<Map<String, Object>>());
-                        ingredientMap.put(inventoryId, ingredientData);
-                    }
-
-                    List<Map<String, Object>> sellerList = (List<Map<String, Object>>) ingredientMap.get(inventoryId).get("sellers");
-
-                    Map<String, Object> seller = new HashMap<>();
-                    seller.put("seller_id", rs.getInt("seller_id"));
-                    seller.put("supplier_name", rs.getString("supplier_name"));
-                    seller.put("phone", rs.getString("phone"));
-                    seller.put("cost", rs.getDouble("cost"));
-                    sellerList.add(seller);
-                }
-
-                rs.close();
-                stmt.close();
-                con.close();
-
-                int index = 0;
-                for (Map.Entry<Integer, Map<String, Object>> entry : ingredientMap.entrySet()) {
-                    int inventoryId = entry.getKey();
-                    Map<String, Object> data = entry.getValue();
-                    String ingredientName = (String) data.get("name");
-                    List<Map<String, Object>> sellers = (List<Map<String, Object>>) data.get("sellers");
-            %>
-            <div class="accordion-item">
-                <h2 class="accordion-header" id="heading<%= index %>">
-                    <button class="accordion-button <%= index > 0 ? "collapsed" : "" %>" type="button" data-bs-toggle="collapse" data-bs-target="#collapse<%= index %>">
-                        <%= ingredientName %>
-                    </button>
-                </h2>
-                <div id="collapse<%= index %>" class="accordion-collapse collapse <%= index == 0 ? "show" : "" %>" data-bs-parent="#accordionIngredients">
-                    <div class="accordion-body">
-                        <ul class="list-group">
-                            <% for (Map<String, Object> seller : sellers) {
-                                String supplierName = (String) seller.get("supplier_name");
-                                String phone = (String) seller.get("phone");
-                                double cost = (Double) seller.get("cost");
-                            %>
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span>
-                                    <strong><%= supplierName %></strong>
-                                    <span class="text-muted ms-2">(<%= phone %>)</span>
-                                </span>
-                                <span class="badge bg-info text-dark">$<%= String.format("%.2f", cost) %></span>
-                            </li>
-                            <% } %>
-                        </ul>
-                    </div>
+            int idx = 0;
+            for (Map<String,Object> supData : supMap.values()) {
+                String supplierName = (String) supData.get("name");
+                String phone        = (String) supData.get("phone");
+                @SuppressWarnings("unchecked")
+                List<String> items = (List<String>) supData.get("items");
+%>
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="heading<%=idx%>">
+                <button class="accordion-button <%= idx>0 ? "collapsed":"" %>"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#collapse<%=idx%>">
+                    <%= supplierName %> — <span class="text-muted"><%= phone %></span>
+                </button>
+            </h2>
+            <div id="collapse<%=idx%>"
+                 class="accordion-collapse collapse <%= idx==0 ? "show":"" %>"
+                 data-bs-parent="#accordionSuppliers">
+                <div class="accordion-body">
+                    <ul class="list-group">
+                    <% for (String ingr : items) { %>
+                        <li class="list-group-item"><%= ingr %></li>
+                    <% } %>
+                    </ul>
                 </div>
             </div>
-            <% index++; } %>
         </div>
+<%
+                idx++;
+            }
+        }
+    } catch(Exception e) {
+    }
+%>
+    </div>
+
+    <div class="modal fade" id="addModal" tabindex="-1">
+      <div class="modal-dialog">
+        <form method="post" action="addSupplier.jsp" class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Add Supplier</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="supplier_name" class="form-label">Supplier Name</label>
+              <input id="supplier_name" name="supplier_name" type="text"
+                     class="form-control"required>
+            </div>
+            <div class="mb-3">
+              <label for="phone" class="form-label">Phone Number</label>
+              <input id="phone" name="phone" type="tel"
+                     class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label for="item_name" class="form-label">Ingredient</label>
+              <input id="item_name" name="item_name" type="text"
+                     class="form-control" required>    
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary"
+                    data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Add</button>
+          </div>
+        </form>
+      </div>
     </div>
 </body>
 </html>

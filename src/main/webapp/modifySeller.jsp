@@ -5,7 +5,7 @@
 
     String JDBC_URL = "jdbc:mysql://localhost:3306/byte2bite?autoReconnect=true&useSSL=false";
     String DB_USER = "root";
-    String DB_PASSWORD = "Anderson!!22";
+    String DB_PASSWORD = "Password12!";
 
     Class.forName("com.mysql.cj.jdbc.Driver");
     Connection con = DriverManager.getConnection(JDBC_URL, DB_USER, DB_PASSWORD);
