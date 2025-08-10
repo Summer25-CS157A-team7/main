@@ -11,7 +11,7 @@
 <%
     String JDBC_URL    = "jdbc:mysql://localhost:3306/byte2bite?autoReconnect=true&useSSL=false&serverTimezone=UTC";
     String DB_USER     = "root";
-    String DB_PASSWORD = "Password12!";
+    String DB_PASSWORD = "";  //add your password
 
     String supplierName = request.getParameter("supplier_name");
     String phone        = request.getParameter("phone");

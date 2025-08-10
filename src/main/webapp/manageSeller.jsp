@@ -32,7 +32,7 @@
         <h2 class="text-center">Manage Seller Information</h2>
     </div>
 
-    <!-- Register New Seller -->
+
     <div class="card mb-5 shadow-sm">
         <div class="card-header bg-primary text-white">
             Register New Seller
@@ -59,7 +59,7 @@
         </div>
     </div>
 
-    <!-- Filter with Apply Button -->
+
     <form class="mb-4 text-center d-flex justify-content-center gap-2" onsubmit="event.preventDefault(); filterSellers();">
         <input id="filterInput" type="text" class="form-control w-50" placeholder="Filter by seller or item...">
         <button type="submit" class="btn btn-primary">Apply Filter</button>
@@ -67,7 +67,7 @@
     </form>
 
 
-    <!-- Existing Sellers Table -->
+    
     <div class="table-responsive">
         <table class="table table-bordered align-middle">
             <thead class="table-light">
@@ -83,7 +83,7 @@
             <%
                 String JDBC_URL = "jdbc:mysql://localhost:3306/byte2bite?autoReconnect=true&useSSL=false";
                 String DB_USER = "root";
-                String DB_PASSWORD = "Anderson!!22";
+                String DB_PASSWORD = "";  //add your password
 
                 Class.forName("com.mysql.cj.jdbc.Driver");
                 Connection con = DriverManager.getConnection(JDBC_URL, DB_USER, DB_PASSWORD);

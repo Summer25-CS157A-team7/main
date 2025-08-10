@@ -131,7 +131,6 @@ class Period {
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <title>Time Tracking</title>
 </head>
 <link rel="stylesheet" href="<%= request.getContextPath() %>/css/timeTracking.css?v=<%= System.currentTimeMillis() %>" />
 <body>
@@ -144,7 +143,6 @@ class Period {
     <a class="main-btn" href="<%= request.getContextPath() %>/managerHub.jsp">Main Page</a>
   </div>
 
-    <h2>Time Tracking</h2>
     <div class="clock-container">
       <div class="clock">
         Current Time: <span id="liveClock">--:--:--</span>

@@ -1,15 +1,15 @@
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 
 
 
@@ -35,11 +35,11 @@ public class LoginServlet extends HttpServlet {
     
         if (staffId == null || staffId.isEmpty() || pin == null || pin.isEmpty()) {
             request.setAttribute("error", "Staff ID and PIN are required.");
-            request.getRequestDispatcher("index.jsp").forward(request, response);
+            request.getRequestDispatcher("/index.jsp").forward(request, response);
             return;
         }
 
-            String sql = "SELECT s.first_name, s.last_name, r.role_name " +
+            String sql = "SELECT s.staff_id, s.first_name, s.last_name, r.role_name " +
              "FROM Staff s " +
              "JOIN staff_role r ON s.staff_id = r.staff_id " +
              "WHERE s.staff_id = ? AND s.pin = ?";
@@ -56,36 +56,37 @@ public class LoginServlet extends HttpServlet {
 
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
+
                         HttpSession session = request.getSession();
                         session.setAttribute("FirstName", rs.getString("first_name"));
                         session.setAttribute("LastName",  rs.getString("last_name"));
+                        session.setAttribute("staffId",   rs.getInt("staff_id"));
                         session.setAttribute("role",      rs.getString("role_name"));
 
-                        String role = rs.getString("role_name");
 
-                        session.setAttribute("loginSuccess", "Welcome " + rs.getString("first_name") + " " + rs.getString("last_name"));
+                        String role = rs.getString("role_name");
 
                         if ("Admin".equalsIgnoreCase(role)) {
                             response.sendRedirect(request.getContextPath() + "/admin.jsp");
                         } else if ("Manager".equalsIgnoreCase(role)) {
-                            response.sendRedirect(request.getContextPath() + "/manager.jsp");
-                        } else if ("WaitStaff".equalsIgnoreCase(role)) {
-                            response.sendRedirect(request.getContextPath() + "/waitStaff.jsp");
-                        } else if ("Wait_Kitchen".equalsIgnoreCase(role)) {
-                            response.sendRedirect(request.getContextPath() + "/waitKitchen.jsp");
+                            response.sendRedirect(request.getContextPath() + "/managerHub.jsp");
+                        } else if ("Wait Staff".equalsIgnoreCase(role)) {
+                            response.sendRedirect(request.getContextPath() + "/employeeHub.jsp");
+                        } else if ("Kitchen Staff".equalsIgnoreCase(role)) {
+                            response.sendRedirect(request.getContextPath() + "/chefHub.jsp");
                         } else {
-                            request.setAttribute("error", "Unknown role.");
                             request.getRequestDispatcher("index.jsp").forward(request, response);
                         }
                     } else {
                         request.setAttribute("error", "Invalid Staff ID or PIN.");
-                        request.getRequestDispatcher("index.jsp").forward(request, response);
+                        request.getRequestDispatcher("/login.jsp").forward(request, response);
                     }
                 }
             }
         } catch (Exception e) {
-            request.setAttribute("error", "Error: " + e.getMessage());
-            request.getRequestDispatcher("index.jsp").forward(request, response);
+            e.printStackTrace();
+            request.setAttribute("error", "An internal error occurred."); 
+            request.getRequestDispatcher("/login.jsp").forward(request, response);
         }
     }
 }

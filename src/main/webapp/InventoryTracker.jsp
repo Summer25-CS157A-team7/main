@@ -4,22 +4,59 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Byte2Bite: Inventory Tracker</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="container mt-5">
+  <%  
+      String firstName = (String) session.getAttribute("FirstName");
+      String lastName  = (String) session.getAttribute("LastName");
+      String role      = (String) session.getAttribute("role");
+         
+
+    String backPage = "employeeHub.jsp";
+    if ("Kitchen Staff".equalsIgnoreCase(role)) {
+        backPage = "chefHub.jsp";
+    } else if ("Manager".equalsIgnoreCase(role)) {
+        backPage = "managerHub.jsp";
+    } else if ("Wait Staff".equalsIgnoreCase(role)) {
+        response.sendRedirect("employeeHub.jsp");
+    }
+
+  %>
+
+  <div class="position-relative mb-4" style="height:100px;">
+    <div class="position-absolute top-0 start-0 d-flex flex-column align-items-center mt-3 ms-3">
+      <a href="<%= backPage %>">
+        <img src="<%= request.getContextPath() %>/images/logo3.png"
+             alt="Byte2Bite Logo"
+             style="height:80px; display:block;" />
+      </a>
+      <a href="<%= backPage %>" 
+         class="btn btn-outline-secondary mt-2">
+        &larr; Back to Hub
+      </a>
+    </div>
+
+    <div class="position-absolute top-0 end-0 mt-3 me-3" style="height:40px;">
+      <div class="bg-primary text-white px-3 rounded h-100 d-flex align-items-center">
+        <%= role %> : <%= firstName %> <%= lastName %>
+      </div>
+    </div>
+  </div>
+
+  
+    <div class="text-center mb-4">
+        <h2>Inventory</h2>
+    </div>
 
 <%
-    // --- DB credentials ---
     String JDBC_URL    = "jdbc:mysql://localhost:3306/byte2bite?useSSL=false&serverTimezone=UTC";
     String DB_USER     = "root";
-    String DB_PASSWORD = "Password12!";
+    String DB_PASSWORD = "";  //add your password
 
-    // 0) Handle updates on POST
     if ("POST".equalsIgnoreCase(request.getMethod())) {
         Class.forName("com.mysql.cj.jdbc.Driver");
         try ( Connection con = DriverManager.getConnection(JDBC_URL, DB_USER, DB_PASSWORD) ) {
-            // loop through all parameters looking for qty_<item>
             for (String param : request.getParameterMap().keySet()) {
                 if (param.startsWith("qty_")) {
                     String item = param.substring(4);
@@ -34,12 +71,10 @@
                 }
             }
         }
-        // after saving, redirect to clear POST state
         response.sendRedirect("InventoryTracker.jsp");
         return;
     }
 
-    // read filters
     String ingredientFilter = request.getParameter("ingredient_filter");
     String maxQtyParam      = request.getParameter("max_quantity");
 
@@ -51,12 +86,7 @@
     Class.forName("com.mysql.cj.jdbc.Driver");
 %>
 
-    <div class="position-relative mb-4">
-        <a href="managerHub.jsp" class="btn btn-outline-secondary position-absolute top-0 start-0">&larr; Back to Hub</a>
-        <h2 class="text-center">Inventory Tracker</h2>
-    </div>
 
-    <!-- Filter Form -->
     <form method="get" class="row g-3 mb-4 justify-content-center">
         <div class="col-auto">
             <input type="text" name="ingredient_filter" class="form-control" placeholder="Ingredient Name"
@@ -73,13 +103,13 @@
     </form>
 
 <%
-    // 1) Fetch and render table inside a POST form
+
     try ( Connection con = DriverManager.getConnection(JDBC_URL, DB_USER, DB_PASSWORD) ) {
         String sql =
             "SELECT fi.item_name AS ingredient, fi.quantity AS available " +
             "FROM food_inventory fi ";
 
-        // only add WHERE if needed
+
         List<Object> params = new ArrayList<>();
         StringBuilder where = new StringBuilder();
         if (ingredientFilter != null && !ingredientFilter.trim().isEmpty()) {

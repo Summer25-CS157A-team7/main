@@ -4,7 +4,9 @@
     request.setCharacterEncoding("UTF-8");
 
     String sessionIdStr = request.getParameter("session_id");
-    String[] mealIds    = request.getParameterValues("meal_ids");
+    String[] mealIds    = request.getParameterValues("meal_id");
+    String[] quantities    = request.getParameterValues("quantity");
+
 
     if (mealIds == null || mealIds.length == 0) {
         response.sendRedirect("waitStaff.jsp");
@@ -16,7 +18,7 @@
 
     String JDBC_URL    = "jdbc:mysql://localhost:3306/byte2bite?autoReconnect=true&useSSL=false&serverTimezone=UTC";
     String DB_USER     = "root";
-    String DB_PASSWORD = "Password12!";
+    String DB_PASSWORD = "";   //add your password
 
     Connection con                     = null;
     PreparedStatement createTicketStmt = null;
@@ -47,14 +49,25 @@
         createTicketStmt.close();
 
 
-        insertOrderStmt = con.prepareStatement( "INSERT INTO orders (ticket_id, meal_id) VALUES (?, ?)" );
-        for (String mid : mealIds) 
+        insertOrderStmt = con.prepareStatement(
+        "INSERT INTO orders (ticket_id, meal_id, note) VALUES (?, ?, ?)"
+        );
+
+        for (int i = 0; i < mealIds.length; i++) 
         {
-            int mealId = Integer.parseInt(mid);
-            insertOrderStmt.setInt(1, ticketId);
-            insertOrderStmt.setInt(2, mealId);
-            insertOrderStmt.addBatch();
+            int mealId = Integer.parseInt(mealIds[i]);
+            int qty    = Integer.parseInt(quantities[i]);
+            if (qty <= 0) continue;
+            for (int c = 0; c < qty; c++) 
+            {
+                insertOrderStmt.setInt(1, ticketId);
+                insertOrderStmt.setInt(2, mealId);
+                insertOrderStmt.setString(3, request.getParameter("note"));
+                insertOrderStmt.addBatch();
+            }
         }
+
+
         insertOrderStmt.executeBatch();
         insertOrderStmt.close();
 
@@ -66,4 +79,3 @@
         out.println("Error submitting order: " + e.getMessage() );
     }
 %>
-    

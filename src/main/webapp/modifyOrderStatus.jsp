@@ -11,7 +11,6 @@
 <body class="container mt-5">
 
 <%!
-    // helper for elapsed
     String formatElapsed(Timestamp ts) {
         if (ts == null) return "N/A";
         Duration diff = Duration.between(ts.toInstant(), Instant.now());
@@ -22,28 +21,59 @@
         return minutes + "m ago";
     }
 
-    // ticket metadata holder, now includes staffName
     class TicketMeta {
         int ticketId;
         String status;
         Object tableId;
         Object capacity;
         Timestamp placedAt;
-        String staffName; // FIX: added staff serving
+        String staffName;
         List<Map<String, Object>> meals = new ArrayList<>();
     }
 %>
+  <%  
+      String firstName = (String) session.getAttribute("FirstName");
+      String lastName  = (String) session.getAttribute("LastName");
+      String role      = (String) session.getAttribute("role");
+         
 
-    <!-- Back Button -->
-    <div class="mb-2">
-        <a href="employeeHub.jsp" class="btn btn-outline-secondary">&larr; Back to Hub</a>
+    String backPage = "employeeHub.jsp";
+    if ("Kitchen Staff".equalsIgnoreCase(role)) {
+        response.sendRedirect("chefHub.jsp");
+    } else if ("Manager".equalsIgnoreCase(role)) {
+        backPage = "managerHub.jsp";
+    } else if ("Wait Staff".equalsIgnoreCase(role)) {
+        backPage = "employeeHub.jsp";
+    }
+
+  %>
+
+
+  <div class="position-relative mb-4" style="height:100px;">
+    <div class="position-absolute top-0 start-0 d-flex flex-column align-items-center mt-3 ms-3">
+      <a href="<%= backPage %>">
+        <img src="<%= request.getContextPath() %>/images/logo3.png"
+             alt="Byte2Bite Logo"
+             style="height:80px; display:block;" />
+      </a>
+      <a href="<%= backPage %>" 
+         class="btn btn-outline-secondary mt-2">
+        &larr; Back to Hub
+      </a>
     </div>
 
+    <div class="position-absolute top-0 end-0 mt-3 me-3" style="height:40px;">
+      <div class="bg-primary text-white px-3 rounded h-100 d-flex align-items-center">
+        <%= role %> : <%= firstName %> <%= lastName %>
+      </div>
+    </div>
+  </div>
+
+  
     <div class="text-center mb-4">
         <h2>Ticket Status</h2>
     </div>
 
-    <!-- Filters -->
     <form method="get" class="row g-3 mb-4 justify-content-center">
         <div class="col-auto">
             <input type="number" name="table_id" class="form-control" placeholder="Filter by Table #" value="<%= request.getParameter("table_id") != null ? request.getParameter("table_id") : "" %>">
@@ -69,7 +99,7 @@
 <%
     String db = "byte2bite";
     String user = "root";
-    String password = "Password12!";
+    String password = "";   //add your password
     String tableFilter = request.getParameter("table_id");
     String statusFilter = request.getParameter("status_filter");
     String ticketIdFilter = request.getParameter("ticket_id");
@@ -83,7 +113,7 @@
         out.println("<div class='alert alert-danger'>JDBC driver load failed: " + cnfe.getMessage() + "</div>");
     }
 
-    // FIX: include staff join to get serving staff name
+
     String query =
         "SELECT t.ticket_id, t.status, t.placed_at, tc.table_id, tc.capacity, " +
         "st.first_name AS staff_first, st.last_name AS staff_last, " +
@@ -91,7 +121,7 @@
         "FROM tickets t " +
         "LEFT JOIN sessions s ON t.session_id = s.session_id " +
         "LEFT JOIN TableChart tc ON s.table_id = tc.table_id " +
-        "LEFT JOIN Staff st ON tc.table_staff_id = st.staff_id " + // FIX: staff serving the table
+        "LEFT JOIN Staff st ON tc.table_staff_id = st.staff_id " +
         "JOIN orders o ON o.ticket_id = t.ticket_id " +
         "JOIN meal m ON o.meal_id = m.meal_id " +
         "WHERE 1=1";
@@ -114,7 +144,7 @@
 
     sb.append(" ORDER BY t.placed_at DESC, t.ticket_id");
 
-    String jdbcUrl = "jdbc:mysql://localhost:3306/" + db + "?autoReconnect=true&useSSL=false&serverTimezone=UTC";
+    String jdbcUrl = "jdbc:mysql://localhost:3306/byte2bite?autoReconnect=true&useSSL=false";
     try (Connection con = DriverManager.getConnection(jdbcUrl, user, password);
          PreparedStatement ps = con.prepareStatement(sb.toString())) {
 
@@ -151,7 +181,7 @@
                     meta.tableId = tableId;
                     meta.capacity = capacity;
                     meta.placedAt = placedAt;
-                    meta.staffName = staffName; // FIX: store staff name
+                    meta.staffName = staffName;  
                     target.put(ticketId, meta);
                 }
                 meta.meals.add(meal);

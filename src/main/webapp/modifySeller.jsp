@@ -5,7 +5,7 @@
 
     String JDBC_URL = "jdbc:mysql://localhost:3306/byte2bite?autoReconnect=true&useSSL=false";
     String DB_USER = "root";
-    String DB_PASSWORD = "Password12!";
+    String DB_PASSWORD = " ";  //add your password
 
     Class.forName("com.mysql.cj.jdbc.Driver");
     Connection con = DriverManager.getConnection(JDBC_URL, DB_USER, DB_PASSWORD);
@@ -38,7 +38,7 @@
         checkItemStmt.close();
         rs.close();
 
-        // Insert seller
+
         int sellerId = -1;
         String insertSeller = "INSERT INTO supplier (name, phone) VALUES (?, ?)";
         PreparedStatement insertSellerStmt = con.prepareStatement(insertSeller, Statement.RETURN_GENERATED_KEYS);
@@ -51,7 +51,6 @@
         }
         insertSellerStmt.close();
 
-        // Insert into sold_by
         String insertSoldBy = "INSERT INTO sold_by (inventory_id, seller_id, cost) VALUES (?, ?, ?)";
         PreparedStatement insertSoldByStmt = con.prepareStatement(insertSoldBy);
         insertSoldByStmt.setInt(1, inventoryId);
@@ -68,7 +67,7 @@
         String itemName = request.getParameter("item_name").trim();
         double cost = Double.parseDouble(request.getParameter("cost"));
 
-        // Update seller info
+
         String updateSeller = "UPDATE supplier SET name = ?, phone = ? WHERE seller_id = ?";
         PreparedStatement updateSellerStmt = con.prepareStatement(updateSeller);
         updateSellerStmt.setString(1, name);
@@ -77,7 +76,7 @@
         updateSellerStmt.executeUpdate();
         updateSellerStmt.close();
 
-        // Update item name in food_inventory
+
         String updateItem = "UPDATE food_inventory SET name = ? WHERE inventory_id = ?";
         PreparedStatement updateItemStmt = con.prepareStatement(updateItem);
         updateItemStmt.setString(1, itemName);
@@ -85,7 +84,6 @@
         updateItemStmt.executeUpdate();
         updateItemStmt.close();
 
-        // Update price in sold_by
         String updateSoldBy = "UPDATE sold_by SET cost = ? WHERE seller_id = ? AND inventory_id = ?";
         PreparedStatement updateSoldByStmt = con.prepareStatement(updateSoldBy);
         updateSoldByStmt.setDouble(1, cost);
@@ -98,7 +96,7 @@
         int sellerId = Integer.parseInt(request.getParameter("seller_id"));
         int inventoryId = Integer.parseInt(request.getParameter("inventory_id"));
 
-        // Remove from sold_by
+  
         String deleteSoldBy = "DELETE FROM sold_by WHERE seller_id = ? AND inventory_id = ?";
         PreparedStatement ps1 = con.prepareStatement(deleteSoldBy);
         ps1.setInt(1, sellerId);
@@ -106,7 +104,7 @@
         ps1.executeUpdate();
         ps1.close();
 
-        // If seller has no other items, delete from supplier
+
         String check = "SELECT COUNT(*) FROM sold_by WHERE seller_id = ?";
         PreparedStatement checkStmt = con.prepareStatement(check);
         checkStmt.setInt(1, sellerId);

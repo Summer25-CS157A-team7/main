@@ -26,14 +26,14 @@ public class OrderServlet extends HttpServlet {
             Class.forName("com.mysql.jdbc.Driver");
             Connection conn = DriverManager.getConnection(
                 "jdbc:mysql://localhost:3306/byte2bite?useSSL=false",
-                "root", "Anderson!!22"
+                "root", "PASSWORD"  //add your password
             );
 
             PreparedStatement ps = conn.prepareStatement(
                 "INSERT INTO contains (meal_id, order_id, quantity) VALUES (?, ?, ?)"
             );
             ps.setInt(1, Integer.parseInt(mealId));
-            ps.setInt(2, 1);  // Replace with actual order_id logic
+            ps.setInt(2, 1); 
             ps.setInt(3, Integer.parseInt(quantity));
 
             ps.executeUpdate();

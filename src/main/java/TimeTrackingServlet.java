@@ -19,7 +19,7 @@ public class TimeTrackingServlet extends HttpServlet
 
     private static final String JDBC_URL    = "jdbc:mysql://localhost:3306/byte2bite?useSSL=false&serverTimezone=UTC";
     private static final String DB_USER     = "root";
-    private static final String DB_PASSWORD = "";    // add your password
+    private static final String DB_PASSWORD = "";    //add your password
 
 
     @Override

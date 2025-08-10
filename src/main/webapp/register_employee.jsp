@@ -20,6 +20,11 @@
         <%= role %> : <%= firstName %> <%= lastName %>
     </div>
 
+
+    <div class="main-link-container">
+        <a class="main-btn" href="<%= request.getContextPath() %>/managerHub.jsp">Main Page</a>
+    </div>
+
     <main class="page-center">
         <div class="form-container">
             <h2>Register Employee</h2>

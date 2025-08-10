@@ -10,10 +10,54 @@
 <body class="container my-5">
   <h2 class="mb-4">Open Sessions &amp; Their Orders</h2>
 
+
+      <%  
+      String firstName = (String) session.getAttribute("FirstName");
+      String lastName  = (String) session.getAttribute("LastName");
+      String role      = (String) session.getAttribute("role");
+         
+
+    String backPage = "managerHub.jsp";
+    if ("Kitchen Staff".equalsIgnoreCase(role)) {
+        response.sendRedirect("chefHub.jsp");
+    } else if ("Manager".equalsIgnoreCase(role)) {
+        backPage = "managerHub.jsp";
+    } else if ("Wait Staff".equalsIgnoreCase(role)) {
+        backPage = "employeeHub.jsp";
+    }
+
+  %>
+
+  <div class="position-relative mb-4" style="height:100px;">
+    <div class="position-absolute top-0 start-0 d-flex flex-column align-items-center mt-3 ms-3">
+      <a href="<%= backPage %>">
+        <img src="<%= request.getContextPath() %>/images/logo3.png"
+             alt="Byte2Bite Logo"
+             style="height:80px; display:block;" />
+      </a>
+      <a href="<%= backPage %>" 
+         class="btn btn-outline-secondary mt-2">
+        &larr; Back to Hub
+      </a>
+    </div>
+
+    <div class="position-absolute top-0 end-0 mt-3 me-3" style="height:40px;">
+      <div class="bg-primary text-white px-3 rounded h-100 d-flex align-items-center">
+        <%= role %> : <%= firstName %> <%= lastName %>
+      </div>
+    </div>
+  </div>
+
+
+    <div class="text-center mb-4">
+        <h2>Payment Gate</h2>
+    </div>
+
+
 <%
     String JDBC_URL    = "jdbc:mysql://localhost:3306/byte2bite?autoReconnect=true&useSSL=false&serverTimezone=UTC";
     String DB_USER     = "root";
-    String DB_PASSWORD = "Password12!";
+    String DB_PASSWORD = "";  //add your password
 
     String closeSessionId = request.getParameter("close_session_id");
     if (closeSessionId != null) {

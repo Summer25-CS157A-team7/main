@@ -14,6 +14,17 @@
     String lastName = (String) session.getAttribute("LastName");
     String role = (String) session.getAttribute("role");
 %>
+
+    <div class="position-absolute top-0 start-0 mt-3 ms-3">
+      <a href="chefHub.jsp">
+        <img src="<%= request.getContextPath() %>/images/logo3.png"
+             alt="Byte2Bite Logo"
+             style="height:110px; width:auto;">
+      </a>
+    </div>
+
+
+
     <div class="top-right">
     <div class="user-info">
         <%= role %> : <%= firstName %> <%= lastName %>
@@ -45,6 +56,15 @@
                     <a href="modifyOrderStatus.jsp" class="btn btn-primary btn-sm">View Active Orders</a>
                 </div>
             </div>
+
+            <div class="card mb-3 shadow-sm mx-auto" style="max-width: 500px;">
+                <div class="card-body py-3 px-4">
+                    <h5 class="card-title mb-2">Payments Tab</h5>
+                    <p class="card-text mb-3"> Payment Menu, Check Payment</p>
+                    <a href="paymentGate.jsp" class="btn btn-primary btn-sm">Go to Payment Dashboard</a>
+                </div>
+            </div>
+
 
             <div class="card mb-3 shadow-sm mx-auto" style="max-width: 500px;">
                 <div class="card-body py-3 px-4">

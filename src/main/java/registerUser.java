@@ -17,7 +17,7 @@ public class registerUser extends HttpServlet {
     private static final String JDBC_URL =
         "jdbc:mysql://localhost:3306/byte2bite?autoReconnect=true&useSSL=false";
     private static final String DB_USER     = "root";
-    private static final String DB_PASSWORD = "Password12!"; //add your password
+    private static final String DB_PASSWORD = ""; //add your password
 
     @Override
     public void init() throws ServletException 

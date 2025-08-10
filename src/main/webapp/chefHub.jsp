@@ -7,12 +7,22 @@
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/employeeHub.css?v=<%= System.currentTimeMillis() %>" />
 </head>
 <body class="container mt-5">
-
     <%
         String firstName = (String) session.getAttribute("FirstName");
         String lastName = (String) session.getAttribute("LastName");
         String role = (String) session.getAttribute("role");
     %>
+
+    <div class="position-absolute top-0 start-0 mt-3 ms-3">
+      <a href="chefHub.jsp">
+        <img src="<%= request.getContextPath() %>/images/logo3.png"
+             alt="Byte2Bite Logo"
+             style="height:110px; width:auto;">
+      </a>
+    </div>
+
+
+
     <div class="top-right">
     <div class="user-info">
         <%= role %> : <%= firstName %> <%= lastName %>
@@ -28,7 +38,6 @@
         <div class="col-md-8 text-center">
             <h2 class="mb-4">Chef Hub</h2>
 
-            <!-- Modify Orders -->
             <div class="card mb-3 shadow-sm mx-auto" style="max-width: 500px;">
                 <div class="card-body py-3 px-4">
                     <h5 class="card-title mb-2">Modify Active Orders</h5>
@@ -37,7 +46,6 @@
                 </div>
             </div>
 
-            <!-- View Ingredient Usage -->
             <div class="card mb-3 shadow-sm mx-auto" style="max-width: 500px;">
                 <div class="card-body py-3 px-4">
                     <h5 class="card-title mb-2">View Ingredient Usage</h5>
@@ -46,7 +54,7 @@
                 </div>
             </div>
 
-            
+
         </div>
     </div>
 </body>

@@ -7,7 +7,6 @@
 
     <display-name>Main Webapp</display-name>
 
-    <!-- Login servlet -->
     <servlet>
         <servlet-name>LoginServlet</servlet-name>
         <servlet-class>LoginServlet</servlet-class>
@@ -17,7 +16,6 @@
         <url-pattern>/login</url-pattern>
     </servlet-mapping>
 
-    <!-- TimeTracking servlet (in default package) -->
     <servlet>
         <servlet-name>TimeTrackingServlet</servlet-name>
         <servlet-class>TimeTrackingServlet</servlet-class>
@@ -27,7 +25,6 @@
         <url-pattern>/time-tracking</url-pattern>
     </servlet-mapping>
 
-    <!-- Your JSP welcome files -->
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
         <welcome-file>login.jsp</welcome-file>

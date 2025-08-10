@@ -16,6 +16,17 @@
     String lastName = (String) session.getAttribute("LastName");
     String role = (String) session.getAttribute("role");
 %>
+
+    <div class="position-absolute top-0 start-0 mt-3 ms-3">
+      <a href="chefHub.jsp">
+        <img src="<%= request.getContextPath() %>/images/logo3.png"
+             alt="Byte2Bite Logo"
+             style="height:110px; width:auto;">
+      </a>
+    </div>
+
+
+
     <div class="top-right">
     <div class="user-info">
         <%= role %> : <%= firstName %> <%= lastName %>
@@ -32,7 +43,16 @@
         <div class="col-md-8 text-center">
             <h2 class="mb-4">Manager Hub</h2>
 
-            <!-- Order Overview -->
+
+            <div class="card mb-3 shadow-sm mx-auto" style="max-width: 500px;">    
+                <div class="card-body py-3 px-4">
+                    <h5 class="card-title mb-2">Submit New Order</h5>
+                    <p class="card-text mb-3">- Place a new meal order for a customer's table.</p>
+                    <a href="waitStaff.jsp" class="btn btn-primary btn-sm">Submit Order</a>
+                </div>
+            </div>
+
+
             <div class="card mb-3 shadow-sm mx-auto" style="max-width: 500px;">
                 <div class="card-body py-3 px-4">
                     <h5 class="card-title mb-2">Order Overview</h5>
@@ -41,7 +61,7 @@
                 </div>
             </div>
 
-            <!-- Dining Overview -->
+
             <div class="card mb-3 shadow-sm mx-auto" style="max-width: 500px;">
                 <div class="card-body py-3 px-4">
                     <h5 class="card-title mb-2">Dining Overview</h5>
@@ -50,18 +70,35 @@
                 </div>
             </div>
 
-            <!-- Inventory Control -->
+
             <div class="card mb-3 shadow-sm mx-auto" style="max-width: 500px;">
                 <div class="card-body py-3 px-4">
                     <h5 class="card-title mb-2">Inventory Control</h5>
                     <p class="card-text mb-3">- View/Modify food inventory and supplier info.</p>
                     <a href="InventoryTracker.jsp" class="btn btn-primary btn-sm">Food Inventory</a>
                     <a href="sellerInfo.jsp" class="btn btn-outline-secondary btn-sm ms-2">Suppliers</a>
-                    <a href="manageSeller.jsp" class="btn btn-outline-secondary btn-sm ms-2">manage Suppliers</a>
                 </div>
             </div>
 
-            <!-- Manage Employees -->
+            <div class="card mb-3 shadow-sm mx-auto" style="max-width: 500px;">
+                <div class="card-body py-3 px-4">
+                    <h5 class="card-title mb-2">Menu</h5>
+                    <p class="card-text mb-3">- Add new menu items to the Menu.</p>
+                    <a href="manageMenu.jsp" class="btn btn-primary btn-sm">Add New Menu Item</a>
+                </div>
+            </div>
+
+
+            <div class="card mb-3 shadow-sm mx-auto" style="max-width: 500px;">
+                <div class="card-body py-3 px-4">
+                    <h5 class="card-title mb-2">Payment Log</h5>
+                    <p class="card-text mb-3">- View all transactions regarding date, staff, and meals.</p>
+                    <a href="transactionLog.jsp" class="btn btn-primary btn-sm">Payment Log</a>
+                </div>
+            </div>
+
+
+
             <div class="card mb-3 shadow-sm mx-auto" style="max-width: 500px;">
                 <div class="card-body py-3 px-4">
                     <h5 class="card-title mb-2">Manage Employees</h5>
@@ -71,7 +108,18 @@
                 </div>
             </div>
 
-            <!-- Customer Info -->
+
+            <div class="card mb-3 shadow-sm mx-auto" style="max-width: 500px;">
+                <div class="card-body py-3 px-4">
+                    <h5 class="card-title mb-2">View Feedback</h5>
+                    <p class="card-text mb-3">- View and manage customer feedback and reviews.</p>
+                    <a href="viewFeedback.jsp" class="btn btn-primary btn-sm">View Feedback</a>
+                </div>
+            </div>
+
+
+
+
             <div class="card mb-3 shadow-sm mx-auto" style="max-width: 500px;">
                 <div class="card-body py-3 px-4">
                     <h5 class="card-title mb-2">Customer Info</h5>
@@ -80,12 +128,12 @@
                 </div>
             </div>
 
-            <!-- Financial Reports -->
+
             <div class="card mb-3 shadow-sm mx-auto" style="max-width: 500px;">
                 <div class="card-body py-3 px-4">
                     <h5 class="card-title mb-2">Financial Reports</h5>
                     <p class="card-text mb-3">- View revenue breakdown and transaction logs.</p>
-                    <a href="revenueTracker.jsp" class="btn btn-primary btn-sm">Revenue Report</a>
+                    <a href="revenueTracker.jsp" class="btn btn-primary btn-sm">Payment Report</a>
                 </div>
             </div>
         </div>
